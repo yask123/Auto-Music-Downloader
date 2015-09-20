@@ -50,4 +50,5 @@ alt="Demo" width="240" height="180" border="10" /></a>
 Run `sh install.sh` from your terminal.
  
 Alternatively, you can run `python music_downloader.py` if you have python 2.x
+
 or run `python music_downloader-python3.py` if you have python 3.x
