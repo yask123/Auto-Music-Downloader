@@ -26,8 +26,9 @@ for link in soup.find_all('a'):
     	# May change when Youtube is updated in the future.
     	video_link = link.get('href')
     	break
+    	
 title = soup.find("a", "yt-uix-tile-link").text
-print(title)
+print('Downloading ' + title + '...')
 
 # Links are relative on page, making them absolute.
 video_link =  'http://www.youtube.com/'+video_link
@@ -35,5 +36,5 @@ command = ('youtube-dl --extract-audio --audio-format mp3 --audio-quality ' +
            DEFAULT_AUDIO_QUALITY + ' ' +video_link)
 
 # Youtube-dl is a proof that god exists.
-print ('Downloading...')
 os.system(command)
+
