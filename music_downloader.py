@@ -24,11 +24,17 @@ html = response.read()
 soup = BeautifulSoup(html, 'html.parser')
 for link in soup.find_all('a'):
     if '/watch?v=' in link.get('href'):
-        print(link.get('href'))
         # May change when Youtube Website may get updated in the future.
         video_link = link.get('href')
         break
-
+    
+# Print video title and prompt for download
+title = soup.find("a", "yt-uix-title-link").text
+print("Found: " + title)
+prompt = raw_input("Download song (y/n)? ")
+if prompt != "y":
+    sys.exit()
+    
 # Links are relative on page, making them absolute.
 video_link =  'http://www.youtube.com/'+video_link
 command = ('youtube-dl --extract-audio --audio-format mp3 --audio-quality ' +
