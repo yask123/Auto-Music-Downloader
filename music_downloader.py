@@ -28,10 +28,15 @@ def main(search=''):
     soup = BeautifulSoup(html, 'html.parser')
     for link in soup.find_all('a'):
         if '/watch?v=' in link.get('href'):
-            print(link.get('href'))
             # May change when Youtube gets updated in the future.
             video_link = link.get('href')
             break
+
+    title = soup.find("a", "yt-uix-tile-link").text
+    print("Found: " + title)
+    prompt = raw_input("Download song (y/n)? ")
+    if prompt != "y":
+        sys.exit()
 
     # Links are relative on page, making them absolute.
     video_link = 'http://www.youtube.com/' + video_link
