@@ -18,7 +18,7 @@ search = ''
 # We do not want to accept empty inputs :)
 while search == '':
   search = raw_input('Enter songname/ lyrics/ artist.. or whatever\n> ')
-search = qp("guap")
+search = qp(search)
 
 print('Making a Query Request! ')
 
