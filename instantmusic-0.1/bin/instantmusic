@@ -70,12 +70,17 @@ def main():
     if prompt != "y":
         sys.exit()
 
+    if video_link.startswith("/"):
+        link = 'http://www.youtube.com' + video_link
+    else:
+        link = 'http://www.youtube.com/' + video_link
+
     command_tokens = [
         'youtube-dl',
         '--extract-audio',
         '--audio-format mp3',
         '--audio-quality 0',
-        'http://www.youtube.com/' + video_link]
+        link]
 
     command = ' '.join(command_tokens)
 
