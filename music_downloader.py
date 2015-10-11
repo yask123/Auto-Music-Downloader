@@ -79,6 +79,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
     command_tokens = [
         'youtube-dl',
+        '--format bestaudio/best'
         '--extract-audio',
         '--audio-format mp3',
         '--audio-quality 0',
