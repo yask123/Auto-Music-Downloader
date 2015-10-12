@@ -4,12 +4,15 @@ from __future__ import print_function
 import os
 import sys
 import re
-import readline
-
 from bs4 import BeautifulSoup
 
+# Windows / missing-readline compat
+try:
+    import readline
+except ImportError:
+    pass
+
 # Version compatiblity
-import sys
 if (sys.version_info > (3, 0)):
     from urllib.request import urlopen
     from urllib.parse import quote_plus as qp
@@ -42,6 +45,7 @@ def search_videos(query):
     response = urlopen('https://www.youtube.com/results?search_query=' + query)
     return extract_videos(response.read())
 
+
 def query_and_download(search, has_prompts=True, is_quiet=False):
     """
     Queries the internet for given lyrics and downloads them into the current working directory.
@@ -59,7 +63,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     if not is_quiet:
         if not available:
             print('No results found matching your query.')
-            sys.exit(2) # Indicate failure using the exit code
+            sys.exit(2)  # Indicate failure using the exit code
         else:
             if has_prompts:
                 print('Found:', '\n'.join(list_movies(available)))
@@ -78,7 +82,6 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     else:
         title, video_link = available[0]
 
-
     command_tokens = [
         'youtube-dl',
         '--extract-audio',
@@ -91,13 +94,13 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
     command = ' '.join(command_tokens)
 
-
     # Youtube-dl is a proof that god exists.
     if not is_quiet:
         print('Downloading')
     os.system(command)
 
     return title
+
 
 def search_uses_flags(argstring, *flags):
     """
@@ -107,6 +110,7 @@ def search_uses_flags(argstring, *flags):
         if (argstring.find(flag) != 0):
             return True
     return False
+
 
 def main():
     """
@@ -145,7 +149,8 @@ def main():
             parser.add_argument('-p', action='store_false', dest='has_prompt', help="Turn off download prompts")
             parser.add_argument('-q', action='store_true', dest='is_quiet', help="Run in quiet mode. Automatically turns off prompts.")
             parser.add_argument('-s', action='store', dest='song', nargs='+', help='Download a single song.')
-            parser.add_argument('-l', action='store', dest='songlist', nargs='+', help='Download a list of songs, with lyrics separated by a comma (e.g. "i tried so hard and got so far, blackbird singing in the dead of night, hey shawty it\'s your birthday).')
+            parser.add_argument('-l', action='store', dest='songlist', nargs='+',
+                                help='Download a list of songs, with lyrics separated by a comma (e.g. "i tried so hard and got so far, blackbird singing in the dead of night, hey shawty it\'s your birthday).')
             parser.add_argument('-f', action='store', dest='file', nargs='+', help='Download a list of songs from a file input. Each line in the file is considered one song.')
 
             # Parse and check arguments

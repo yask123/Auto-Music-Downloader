@@ -1,8 +1,0 @@
-setup.py
-bin/instantmusic
-instantmusic/__init__.py
-instantmusic.egg-info/PKG-INFO
-instantmusic.egg-info/SOURCES.txt
-instantmusic.egg-info/dependency_links.txt
-instantmusic.egg-info/not-zip-safe
-instantmusic.egg-info/top_level.txt
