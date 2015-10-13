@@ -4,6 +4,8 @@ from __future__ import print_function
 import os
 import sys
 import re
+import eyed3
+
 from bs4 import BeautifulSoup
 
 # Windows / missing-readline compat
@@ -13,6 +15,7 @@ except ImportError:
     pass
 
 # Version compatiblity
+import sys
 if (sys.version_info > (3, 0)):
     from urllib.request import urlopen
     from urllib.parse import quote_plus as qp
@@ -40,11 +43,10 @@ def list_movies(movies):
 
 def search_videos(query):
     """
-    Searchs for videos given a query
+    Searches for videos given a query
     """
     response = urlopen('https://www.youtube.com/results?search_query=' + query)
     return extract_videos(response.read())
-
 
 def query_and_download(search, has_prompts=True, is_quiet=False):
     """
@@ -63,7 +65,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     if not is_quiet:
         if not available:
             print('No results found matching your query.')
-            sys.exit(2)  # Indicate failure using the exit code
+            sys.exit(2) # Indicate failure using the exit code
         else:
             if has_prompts:
                 print('Found:', '\n'.join(list_movies(available)))
@@ -82,11 +84,13 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     else:
         title, video_link = available[0]
 
+
     command_tokens = [
         'youtube-dl',
         '--extract-audio',
         '--audio-format mp3',
         '--audio-quality 0',
+        '--output \'%(title)s.%(ext)s\'',
         'http://www.youtube.com/' + video_link]
 
     if is_quiet:
@@ -94,13 +98,27 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
     command = ' '.join(command_tokens)
 
+
     # Youtube-dl is a proof that god exists.
     if not is_quiet:
         print('Downloading')
     os.system(command)
-
+    
+    #Fixing id3 tags
+    print ('Fixing id3 tags')
+    list_name = title.split('-')
+    track_name = list_name[0]
+    artist=list_name[1]
+  
+    audiofile = eyed3.load((title+'.mp3'))
+    if audiofile.tag is None:
+            audiofile.tag = eyed3.id3.Tag()
+            audiofile.tag.file_info = eyed3.id3.FileInfo("foo.id3")
+    audiofile.tag.artist=unicode(artist, "utf-8")
+    audiofile.tag.title=unicode(track_name, "utf-8")
+    audiofile.tag.save()
+    
     return title
-
 
 def search_uses_flags(argstring, *flags):
     """
@@ -110,7 +128,6 @@ def search_uses_flags(argstring, *flags):
         if (argstring.find(flag) != 0):
             return True
     return False
-
 
 def main():
     """
@@ -149,8 +166,7 @@ def main():
             parser.add_argument('-p', action='store_false', dest='has_prompt', help="Turn off download prompts")
             parser.add_argument('-q', action='store_true', dest='is_quiet', help="Run in quiet mode. Automatically turns off prompts.")
             parser.add_argument('-s', action='store', dest='song', nargs='+', help='Download a single song.')
-            parser.add_argument('-l', action='store', dest='songlist', nargs='+',
-                                help='Download a list of songs, with lyrics separated by a comma (e.g. "i tried so hard and got so far, blackbird singing in the dead of night, hey shawty it\'s your birthday).')
+            parser.add_argument('-l', action='store', dest='songlist', nargs='+', help='Download a list of songs, with lyrics separated by a comma (e.g. "i tried so hard and got so far, blackbird singing in the dead of night, hey shawty it\'s your birthday).')
             parser.add_argument('-f', action='store', dest='file', nargs='+', help='Download a list of songs from a file input. Each line in the file is considered one song.')
 
             # Parse and check arguments
