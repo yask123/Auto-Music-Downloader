@@ -4,10 +4,15 @@ from __future__ import print_function
 import os
 import sys
 import re
-import readline
 import eyed3
 
 from bs4 import BeautifulSoup
+
+# Windows / missing-readline compat
+try:
+    import readline
+except ImportError:
+    pass
 
 # Version compatiblity
 import sys

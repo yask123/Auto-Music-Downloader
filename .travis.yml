@@ -1,3 +1,5 @@
+sudo: false
+
 language: python
 python:
   - "2.6"
@@ -11,4 +13,8 @@ python:
 # command to install dependencies
 install: "pip install -r requirements.txt"
 # command to run tests
-script: nosetests
+script:
+    - python setup.py install
+    - cd ~
+    - instantmusic -p -s "India wale"
+    - nosetests
