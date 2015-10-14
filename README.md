@@ -89,6 +89,38 @@ optional arguments:
                         in the file is considered one song.
 ```
 
+### MP3 Tags
+> WIP
+
+
+The script automatically embeds `id3` tags (Artist name and Song title) to the downloaded `.mp3` file.
+
+
+For Album art (Experimental): [Fixalbumart](http://iyask.me/fixalbumart/)
+
+For Lyrics (Experimental): [AutoLyricsTagger](https://github.com/yask123/Auto-MP3-Lyrics-Tagger)
+> I'll merge these two projects to Instant-Music-Downloader after some more testing and optimizations. Please feel free to try those experimental projects and report issues.
+
+<img src="http://i.imgur.com/GkUSPCm.png" height="50%" width="50%">
+
+
+```bash
+$ sudo pip install fixalbumart
+
+❯cd MyMusic
+
+❯fixalbumart
+
+>> Fixing taylor swift - love story
+>> In the end - Linkin park 
+......
+
+>> Fixed all songs
+
+```
+
+
+
 ### Video
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=H2GQc81hpBE
 " target="_blank"><img src="http://img.youtube.com/vi/H2GQc81hpBE/0.jpg" 
@@ -98,6 +130,10 @@ alt="Demo" width="240" height="180" border="10" /></a>
 ## Requirements
 1. Youtube-dl
 2. BeautifulSoup
+
+## Disclaimer
+
+Use this software at your own risk, it uses `youtube-dl` to download music.
 
 
 ## The MIT License

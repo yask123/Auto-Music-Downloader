@@ -9,4 +9,8 @@ setup(name='instantmusic',
       license='MIT',
       packages=['instantmusic'],
       scripts=['bin/instantmusic'],
+      install_requires=[
+          'youtube-dl',
+          'BeautifulSoup4',
+      ],
       zip_safe=False)
