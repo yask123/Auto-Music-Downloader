@@ -5,6 +5,7 @@ import os
 import sys
 import re
 import readline
+import subprocess
 import eyed3
 
 from bs4 import BeautifulSoup
@@ -43,6 +44,7 @@ def search_videos(query):
     response = urlopen('https://www.youtube.com/results?search_query=' + query)
     return extract_videos(response.read())
 
+
 def query_and_download(search, has_prompts=True, is_quiet=False):
     """
     Queries the internet for given lyrics and downloads them into the current working directory.
@@ -60,7 +62,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     if not is_quiet:
         if not available:
             print('No results found matching your query.')
-            sys.exit(2) # Indicate failure using the exit code
+            sys.exit(2)  # Indicate failure using the exit code
         else:
             if has_prompts:
                 print('Found:', '\n'.join(list_movies(available)))
@@ -68,8 +70,9 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     # We only ask the user which one they want if prompts are on, of course
     if has_prompts and not is_quiet:
         choice = ''
-        while choice.strip() == '':
+        while choice.strip() == '' or not(0 <= int(choice) < len(available)):
             choice = raw_input('Pick one: ')
+
         title, video_link = available[int(choice)]
 
         prompt = raw_input('Download "%s"? (y/n) ' % title)
@@ -78,7 +81,6 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     # Otherwise, just download the first in available list
     else:
         title, video_link = available[0]
-
 
     command_tokens = [
         'youtube-dl',
@@ -93,33 +95,34 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
     command = ' '.join(command_tokens)
 
-
     # Youtube-dl is a proof that god exists.
     if not is_quiet:
         print('Downloading')
     os.system(command)
-    
-    #Fixing id3 tags
+
+    # Fixing id3 tags
     try:
-        print ('Fixing id3 tags')
+        print('Fixing id3 tags')
         list_name = title.split('-')
-        artist=list_name[0]
+        artist = list_name[0]
         track_name = list_name[1]
 
         try:
             audiofile = eyed3.load((title+'.mp3'))
         except:
-            audiofile = eyed3.load((title+'.m4a'))    
+            audiofile = eyed3.load((title+'.m4a'))
         if audiofile.tag is None:
-                audiofile.tag = eyed3.id3.Tag()
-                audiofile.tag.file_info = eyed3.id3.FileInfo("foo.id3")
-        audiofile.tag.artist=unicode(artist, "utf-8")
-        audiofile.tag.title=unicode(track_name, "utf-8")
+            audiofile.tag = eyed3.id3.Tag()
+            audiofile.tag.file_info = eyed3.id3.FileInfo("foo.id3")
+        audiofile.tag.artist = unicode(artist, "utf-8")
+        audiofile.tag.title = unicode(track_name, "utf-8")
         audiofile.tag.save()
-        print ('Fixed')
-    except Exception as e: print(e)
+        print('Fixed')
+    except Exception as e:
+        print(e)
 
     return title
+
 
 def search_uses_flags(argstring, *flags):
     """
@@ -129,6 +132,16 @@ def search_uses_flags(argstring, *flags):
         if (argstring.find(flag) != 0):
             return True
     return False
+
+
+def search_and_download():
+    search = ''
+    while search == '':
+        search = raw_input('Enter songname/ lyrics/ artist.. or whatever\n> ')
+    search = qp(search)
+    downloaded = query_and_download(search)
+    return downloaded
+
 
 def main():
     """
@@ -140,14 +153,14 @@ def main():
     # No command-line arguments
     if not sys.argv[1:]:
         # We do not want to accept empty inputs :)
-        while search == '':
-            search = raw_input('Enter songname/ lyrics/ artist.. or whatever\n> ')
-        search = qp(search)
-        downloaded = query_and_download(search)
-
+        downloaded = search_and_download()
     # Command-line arguments detected!
     else:
         # No flags at all are specified
+        if len(sys.argv[1:]) == 2 and not search_uses_flags(argument_string, '-r'):
+            downloaded = search_and_download()
+            subprocess.call([sys.argv[2], str(downloaded.decode('utf-8'))+'.mp3'])
+
         if not search_uses_flags(argument_string, '-s', '-i', '-f', '-p', '-q'):
             search = qp(' '.join(sys.argv[1:]))
             downloaded = query_and_download(search)
@@ -169,7 +182,7 @@ def main():
             parser.add_argument('-s', action='store', dest='song', nargs='+', help='Download a single song.')
             parser.add_argument('-l', action='store', dest='songlist', nargs='+', help='Download a list of songs, with lyrics separated by a comma (e.g. "i tried so hard and got so far, blackbird singing in the dead of night, hey shawty it\'s your birthday).')
             parser.add_argument('-f', action='store', dest='file', nargs='+', help='Download a list of songs from a file input. Each line in the file is considered one song.')
-
+            parser.add_argument('-r', action='store', dest='run_after', nargs=1, help='After the song is downloaded, launch this program play it.')
             # Parse and check arguments
             results = parser.parse_args()
 
@@ -195,9 +208,12 @@ def main():
 
             downloads = []
             for song in song_list:
-                downloads.append(query_and_download(song, prompt, quiet))
+                downloads.append(query_and_download(song, prompt, quiet).decode('utf-8'))
 
             print('Downloaded: %s' % ', '.join(downloads))
+
+            if results.run_after:
+                subprocess.call([results.run_after[0], str(' '.join([d + '.mp3' for d in downloads]))])
 
 if __name__ == '__main__':
     main()
