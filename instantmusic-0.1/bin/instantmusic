@@ -70,7 +70,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     # We only ask the user which one they want if prompts are on, of course
     if has_prompts and not is_quiet:
         choice = ''
-        while choice.strip() == '' or not(0 < int(choice) < len(available)):
+        while choice.strip() == '' or not(0 <= int(choice) < len(available)):
             choice = raw_input('Pick one: ')
 
         title, video_link = available[int(choice)]
