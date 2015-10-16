@@ -4,13 +4,11 @@ from __future__ import print_function
 import os
 import sys
 import re
-import readline
 import eyed3
 
 from bs4 import BeautifulSoup
 
-# Version compatiblity
-import sys
+# Version compatibility
 if (sys.version_info > (3, 0)):
     from urllib.request import urlopen
     from urllib.parse import quote_plus as qp
@@ -60,7 +58,8 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     if not is_quiet:
         if not available:
             print('No results found matching your query.')
-            sys.exit(2) # Indicate failure using the exit code
+            # Indicate failure using the exit code
+            sys.exit(2)
         else:
             if has_prompts:
                 print('Found:', '\n'.join(list_movies(available)))
@@ -79,12 +78,13 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     else:
         title, video_link = available[0]
 
-
     command_tokens = [
         'youtube-dl',
         '--extract-audio',
         '--audio-format mp3',
         '--audio-quality 0',
+        '--socket-timeout 10.0',
+        '--abort-on-error',
         '--output \'%(title)s.%(ext)s\'',
         'http://www.youtube.com/' + video_link]
 
@@ -93,17 +93,16 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
     command = ' '.join(command_tokens)
 
-
     # Youtube-dl is a proof that god exists.
     if not is_quiet:
         print('Downloading')
     os.system(command)
     
-    #Fixing id3 tags
+    # Fixing id3 tags
     try:
         print ('Fixing id3 tags')
         list_name = title.split('-')
-        artist=list_name[0]
+        artist = list_name[0]
         track_name = list_name[1]
 
         try:
@@ -117,9 +116,11 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
         audiofile.tag.title=unicode(track_name, "utf-8")
         audiofile.tag.save()
         print ('Fixed')
-    except Exception as e: print(e)
+    except Exception as e:
+        print(e)
 
     return title
+
 
 def search_uses_flags(argstring, *flags):
     """
@@ -129,6 +130,7 @@ def search_uses_flags(argstring, *flags):
         if (argstring.find(flag) != 0):
             return True
     return False
+
 
 def main():
     """
@@ -141,7 +143,7 @@ def main():
     if not sys.argv[1:]:
         # We do not want to accept empty inputs :)
         while search == '':
-            search = raw_input('Enter songname/ lyrics/ artist.. or whatever\n> ')
+            search = raw_input('Enter songname/lyrics/artist...or whatever\n>')
         search = qp(search)
         downloaded = query_and_download(search)
 
