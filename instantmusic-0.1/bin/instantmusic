@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from __future__ import print_function
-from IPython import embed
 import os
 import sys
 import re
@@ -51,16 +50,15 @@ def grab_albumart(search=''):
 
 def list_movies(movies):
     for idx, (title, _) in enumerate(movies):
-        yield '[{}] {}'.format(idx, title)
+        yield u'[{}] {}'.format(idx, title)
 
 
 def search_videos(query):
     """
     Searches for videos given a query
     """
-    response = urlopen('https://www.youtube.com/results?search_query=' + query)
-    html = response.read().decode(response.headers.get_content_charset())
-    return extract_videos(html)
+    response = requests.get('https://www.youtube.com/results?search_query=' + query)
+    return extract_videos(response.text)
 
 def query_and_download(search, has_prompts=True, is_quiet=False):
     """
@@ -160,7 +158,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
         search =  title[:-4]
         print ('Downloading album art..')
         image_link = grab_albumart(search)
-        print ('Fixing '+title)
+        print (u'Fixing '+title)
         eyed3.log.setLevel("ERROR")
         if audiofile.tag is None:
             audiofile.tag = eyed3.id3.Tag()
