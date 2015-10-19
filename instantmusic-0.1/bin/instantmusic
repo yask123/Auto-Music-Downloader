@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-import os
+import subprocess
 import sys
 import re
 import readline
@@ -98,22 +98,19 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     command_tokens = [
         'youtube-dl',
         '--extract-audio',
-        '--audio-format mp3',
-        '--audio-quality 0',
-        '--output \'%(title)s.%(ext)s\'',
+        '--audio-format', 'mp3',
+        '--audio-quality' ,'0',
+        '--output', "%(title)s.%(ext)s",
         'http://www.youtube.com/' + video_link]
 
     if is_quiet:
         command_tokens.insert(1, '-q')
 
-    command = ' '.join(command_tokens)
-
-
     # Youtube-dl is a proof that god exists.
     if not is_quiet:
         print('Downloading')
-    os.system(command)
-    
+    subprocess.check_call(command_tokens)
+
     #Fixing id3 tags
     try:
         print ('Fixing id3 tags')
