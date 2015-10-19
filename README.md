@@ -93,15 +93,17 @@ optional arguments:
 > WIP
 
 
-The script automatically embeds `id3` tags (Artist name and Song title) to the downloaded `.mp3` file.
+The script automatically embeds `id3` tags to the downloaded `.mp3` file.
 
+It will grab following meta data:
 
-For Album art (Experimental): [Fixalbumart](http://iyask.me/fixalbumart/)
+1. Track title (From YT)
+2. Artist (From YT)
+3. Album name (From metrolyrics.com)
+4. Album art (From google images)
+5. Lyrics  (From metrolyrics.com) 
 
-For Lyrics (Experimental): [AutoLyricsTagger](https://github.com/yask123/Auto-MP3-Lyrics-Tagger)
-> I'll merge these two projects to Instant-Music-Downloader after some more testing and optimizations. Please feel free to try those experimental projects and report issues.
-
-<img src="http://i.imgur.com/GkUSPCm.png" height="50%" width="50%">
+<img src="http://i.imgur.com/fNXww62.png" height="50%" width="50%">
 
 
 ```bash
