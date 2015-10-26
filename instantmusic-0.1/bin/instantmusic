@@ -6,6 +6,7 @@ import sys
 import re
 import readline
 import eyed3
+import signal
 from bs4 import BeautifulSoup
 import requests
 # Version compatiblity
@@ -18,6 +19,9 @@ else:
     from urllib2 import urlopen
     from urllib import quote_plus as qp
 
+def signal_handler(signal, frame):
+    print('\nExiting...')
+    sys.exit(0)
 
 def extract_videos(html):
     """
@@ -87,14 +91,9 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             choice = raw_input('Pick one: ')
         title, video_link = available[int(choice)]
 
-<<<<<<< HEAD
-        prompt = raw_input('Download "%s"? ([y]/n) ' % title)
-        if prompt not in ['','y']:
-=======
         valid = ['Y', 'y', '']
-        prompt = raw_input('Download "%s"? (Y/n) ' % title)
+        prompt = raw_input('Download "%s"? ([Y]/n) ' % title)
         if prompt not in valid:
->>>>>>> f692d7715d9c733a935c1ee4a6b24d94d7749000
             sys.exit()
     # Otherwise, just download the first in available list
     else:
@@ -119,7 +118,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     if not is_quiet:
         print('Downloading')
     os.system(command)
-    
+
     #Fixing id3 tags
     try:
         print ('Fixing id3 tags')
@@ -131,7 +130,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             try:
                 audiofile = eyed3.load((title+'.mp3'))
             except:
-                audiofile = eyed3.load((title+'.m4a')) 
+                audiofile = eyed3.load((title+'.m4a'))
 
             url = 'http://www.google.com/search?q='+qp(title)
             req = requests.get(url)
@@ -160,17 +159,17 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
                 print (test1)
                 audiofile.tag.lyrics.set(u''+test1 )
             except:
-                print ('cant get lyrics')           
+                print ('cant get lyrics')
 
 
-        except Exception as e: 
+        except Exception as e:
             print(e)
             print ('error getting album and lyrics')
 
 
 
         print (artist,track_name,album_name)
-        
+
         def fix_string(str):
             location = str.find('[')
             if location != -1:
@@ -203,7 +202,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
         audiofile.tag.images.set(0,imagedata,"image/jpeg",u"Album Art")
         audiofile.tag.save()
         print ('Fixed')
-    except Exception as e: 
+    except Exception as e:
         print(e)
         print ('couldnt get album art')
 
@@ -222,6 +221,10 @@ def main():
     """
     Run the program session
     """
+
+    # Gracefully handle KeyboardInterrupt (Ctrl + C)
+    signal.signal(signal.SIGINT, signal_handler)
+
     argument_string = ' '.join(sys.argv[1:])
     search = ''
 
