@@ -69,7 +69,7 @@ def search_playlists(query):
     return extract_videos(response.read())
 
 
-def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False):
+def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False, output_path=''):
     """
     Queries the internet for given lyrics and downloads them into the current working directory.
     If has_prompts is False, will download first available song.
@@ -77,6 +77,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False)
                          off in quiet mode. This is mainly so that instantmusic can be run as a background process.
     Returns the title of the video downloaded from.
     """
+    print(output_path)
     if video_id is False:
         if not is_quiet:
             print('Searching...')
@@ -111,8 +112,9 @@ def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False)
             '--extract-audio',
             '--audio-format mp3',
             '--audio-quality 0',
-            '--output \'%(title)s.%(ext)s\'',
-            'http://www.youtube.com/' + video_link]
+            '--output ' + output_path + '\'%(title)s.%(ext)s\'',
+            'http://www.youtube.com/%s' % (video_link)]
+
     else:
         title = search.encode('utf-8')
         search = qp(' '.join(search.encode('utf-8')))
@@ -121,8 +123,8 @@ def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False)
             '--extract-audio',
             '--audio-format mp3',
             '--audio-quality 0',
-            '--output \'%(title)s.%(ext)s\'',
-            'http://www.youtube.com/watch?v=' + video_id]
+            '--output ' + output_path + '%s\'%(title)s.%(ext)s\'',
+            'http://www.youtube.com/watch?v=%s' % (video_id)]
 
     if is_quiet:
         command_tokens.insert(1, '-q')
@@ -251,12 +253,12 @@ def main():
     # Command-line arguments detected!
     else:
         # No flags at all are specified
-        if not search_uses_flags(argument_string, '-s', '-i', '-f', '-p', '-q'):
+        if not search_uses_flags(argument_string, '-s', '-l', '-f', '-p', '-q', '-pl', '-o'):
             search = qp(' '.join(sys.argv[1:]))
             downloaded = query_and_download(search)
 
         # No input flags are specified
-        elif not search_uses_flags(argument_string, '-s', '-i', '-f'):
+        elif not search_uses_flags(argument_string, '-s', '-l', '-f', '-pl', '-o'):
             # Default to -s
             lyrics = argument_string.replace('-p', '').replace('-q', '')
             search = qp(lyrics)
@@ -273,6 +275,7 @@ def main():
             parser.add_argument('-l', action='store', dest='songlist', nargs='+', help='Download a list of songs, with lyrics separated by a comma (e.g. "i tried so hard and got so far, blackbird singing in the dead of night, hey shawty it\'s your birthday).')
             parser.add_argument('-f', action='store', dest='file', nargs='+', help='Download a list of songs from a file input. Each line in the file is considered one song.')
             parser.add_argument('-pl', action='store', dest='playlist', nargs='+', help='Download all songs from a playlist.')
+            parser.add_argument('-o', action='store', dest='output_path', nargs='+', help='Specify an output path.')
 
             # Parse and check arguments
             results = parser.parse_args()
@@ -284,6 +287,13 @@ def main():
             if results.songlist:
                 songs = ' '.join(results.songlist)
                 song_list.extend([qp(song) for song in songs.split(',')])
+
+            output_path = ''
+            if results.output_path:
+                output_path = ' '.join(results.output_path)
+                if len(output_path) > 0:
+                    if output_path[len(output_path) - 1] is not '/':
+                        output_path += '/'
 
             if results.file:
                 with open(results.file[0], 'r') as f:
@@ -347,10 +357,10 @@ def main():
             downloads = []
             if playlist:
                 for song, video_id in song_list:
-                    downloads.append(query_and_download(song, prompt, quiet, video_id))
+                    downloads.append(query_and_download(song, prompt, quiet, video_id, output_path))
             else:
                 for song in song_list:
-                    downloads.append(query_and_download(song, prompt, quiet))
+                    downloads.append(query_and_download(song, prompt, quiet, output_path=output_path))
 
             print('Downloaded: %s' % ', '.join(downloads))
 
