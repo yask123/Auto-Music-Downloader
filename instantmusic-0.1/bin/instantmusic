@@ -29,6 +29,7 @@ def extract_videos(html):
     found = soup.find_all('a', 'yt-uix-tile-link', href=pattern)
     return [(x.text.encode('utf-8'), x.get('href')) for x in found]
 
+
 def grab_albumart(search=''):
     search = qp(search)
     site = "https://www.google.com/search?site=&tbm=isch&source=hp&biw=1112&bih=613&q="+search+"&oq=backst&gs_l=img.3.0.0l10.1011.3209.0.4292.8.7.1.0.0.0.246.770.0j3j1.4.0..3..0...1.1.64.img..3.5.772.KyXkrVfTLT4#tbm=isch&q=back+street+boys+I+want+it+that+way"
@@ -59,7 +60,16 @@ def search_videos(query):
     response = urlopen('https://www.youtube.com/results?search_query=' + query)
     return extract_videos(response.read())
 
-def query_and_download(search, has_prompts=True, is_quiet=False):
+
+def search_playlists(query):
+    """
+    Searches for playlists given a query
+    """
+    response = urlopen('https://www.youtube.com/results?filters=playlist&lclk=playlist&search_query=' + query)
+    return extract_videos(response.read())
+
+
+def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False):
     """
     Queries the internet for given lyrics and downloads them into the current working directory.
     If has_prompts is False, will download first available song.
@@ -67,42 +77,52 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
                          off in quiet mode. This is mainly so that instantmusic can be run as a background process.
     Returns the title of the video downloaded from.
     """
-    if not is_quiet:
-        print('Searching...')
+    if video_id is False:
+        if not is_quiet:
+            print('Searching...')
 
-    available = search_videos(search)
+        available = search_videos(search)
 
-    if not is_quiet:
-        if not available:
-            print('No results found matching your query.')
-            sys.exit(2) # Indicate failure using the exit code
+        if not is_quiet:
+            if not available:
+                print('No results found matching your query.')
+                sys.exit(2) # Indicate failure using the exit code
+            else:
+                if has_prompts:
+                    print('Found:', '\n'.join(list_movies(available)))
+
+        # We only ask the user which one they want if prompts are on, of course
+        if has_prompts and not is_quiet:
+            choice = ''
+            while choice.strip() == '':
+                choice = raw_input('Pick one: ')
+            title, video_link = available[int(choice)]
+
+            valid = ['Y', 'y', '']
+            prompt = raw_input('Download "%s"? (Y/n) ' % title)
+            if prompt not in valid:
+                sys.exit()
+        # Otherwise, just download the first in available list
         else:
-            if has_prompts:
-                print('Found:', '\n'.join(list_movies(available)))
+            title, video_link = available[0]
 
-    # We only ask the user which one they want if prompts are on, of course
-    if has_prompts and not is_quiet:
-        choice = ''
-        while choice.strip() == '':
-            choice = raw_input('Pick one: ')
-        title, video_link = available[int(choice)]
-
-        valid = ['Y', 'y', '']
-        prompt = raw_input('Download "%s"? (Y/n) ' % title)
-        if prompt not in valid:
-            sys.exit()
-    # Otherwise, just download the first in available list
+        command_tokens = [
+            'youtube-dl',
+            '--extract-audio',
+            '--audio-format mp3',
+            '--audio-quality 0',
+            '--output \'%(title)s.%(ext)s\'',
+            'http://www.youtube.com/' + video_link]
     else:
-        title, video_link = available[0]
-
-
-    command_tokens = [
-        'youtube-dl',
-        '--extract-audio',
-        '--audio-format mp3',
-        '--audio-quality 0',
-        '--output \'%(title)s.%(ext)s\'',
-        'http://www.youtube.com/' + video_link]
+        title = search.encode('utf-8')
+        search = qp(' '.join(search.encode('utf-8')))
+        command_tokens = [
+            'youtube-dl',
+            '--extract-audio',
+            '--audio-format mp3',
+            '--audio-quality 0',
+            '--output \'%(title)s.%(ext)s\'',
+            'http://www.youtube.com/watch?v=' + video_id]
 
     if is_quiet:
         command_tokens.insert(1, '-q')
@@ -182,7 +202,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
         audiofile.tag.album =unicode(album_name)
 
         search =  title[:-4]
-        print ('Downloaidng album art..')
+        print ('Downloading album art..')
         image_link= grab_albumart(search)
         str = title
         str = unicode(str, errors='replace')
@@ -252,6 +272,7 @@ def main():
             parser.add_argument('-s', action='store', dest='song', nargs='+', help='Download a single song.')
             parser.add_argument('-l', action='store', dest='songlist', nargs='+', help='Download a list of songs, with lyrics separated by a comma (e.g. "i tried so hard and got so far, blackbird singing in the dead of night, hey shawty it\'s your birthday).')
             parser.add_argument('-f', action='store', dest='file', nargs='+', help='Download a list of songs from a file input. Each line in the file is considered one song.')
+            parser.add_argument('-pl', action='store', dest='playlist', nargs='+', help='Download all songs from a playlist.')
 
             # Parse and check arguments
             results = parser.parse_args()
@@ -276,9 +297,60 @@ def main():
             prompt = True if results.has_prompt else False
             quiet = True if results.is_quiet else False
 
+            playlist = False
+            if results.playlist:
+                playlist = True
+                is_quiet = quiet
+                has_prompts = prompt
+
+                available = search_playlists(' '.join(results.playlist).replace(' ', '+'))
+
+                if not is_quiet:
+                    if not available:
+                        print('No results found matching your query.')
+                        sys.exit(2) # Indicate failure using the exit code
+                    else:
+                        if has_prompts:
+                            print('Found:', '\n'.join(list_movies(available)))
+
+                # We only ask the user which one they want if prompts are on, of course
+                if has_prompts and not is_quiet:
+                    choice = ''
+                    while choice.strip() == '':
+                        choice = raw_input('Pick one: ')
+                    title, video_link = available[int(choice)]
+
+                    valid = ['Y', 'y', '']
+                    prompt = raw_input('Download "%s"? (Y/n) ' % title)
+                    if prompt not in valid:
+                        sys.exit()
+
+                # Otherwise, just download the first in available list
+                else:
+                    title, video_link = available[0]
+
+
+                if not is_quiet:
+                    print('Searching videos from playlist %s...' % title)
+
+                from youtube_dl import YoutubeDL
+                ydl = YoutubeDL({'ignoreerrors':'True', 'quiet': is_quiet, 'no_warnings': is_quiet})
+                ydl.add_default_info_extractors()
+                playlist = ydl.extract_info('https://www.youtube.com%s' % video_link, download=False)
+                for video in playlist['entries']:
+                    if video:
+                        if not is_quiet:
+                            print('Video #%d: %s' % (video['playlist_index'], video['title']))
+                            #qp(' '.join(results.song))
+                        song_list.append([video['title'], video['id']])
+
             downloads = []
-            for song in song_list:
-                downloads.append(query_and_download(song, prompt, quiet))
+            if playlist:
+                for song, video_id in song_list:
+                    downloads.append(query_and_download(song, prompt, quiet, video_id))
+            else:
+                for song in song_list:
+                    downloads.append(query_and_download(song, prompt, quiet))
 
             print('Downloaded: %s' % ', '.join(downloads))
 
