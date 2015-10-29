@@ -77,7 +77,6 @@ def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False,
                          off in quiet mode. This is mainly so that instantmusic can be run as a background process.
     Returns the title of the video downloaded from.
     """
-    print(output_path)
     if video_id is False:
         if not is_quiet:
             print('Searching...')
@@ -123,7 +122,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False,
             '--extract-audio',
             '--audio-format mp3',
             '--audio-quality 0',
-            '--output ' + output_path + '%s\'%(title)s.%(ext)s\'',
+            '--output ' + output_path + '\'%(title)s.%(ext)s\'',
             'http://www.youtube.com/watch?v=%s' % (video_id)]
 
     if is_quiet:
