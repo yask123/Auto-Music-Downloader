@@ -12,5 +12,6 @@ setup(name='instantmusic',
       install_requires=[
           'youtube-dl',
           'BeautifulSoup4',
+          'eyed3'
       ],
       zip_safe=False)

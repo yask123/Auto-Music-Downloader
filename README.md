@@ -11,7 +11,7 @@ Without knowing its name!!!!
 For Python 2.7
 
 ```bash
-$ sudo  pip install instantmusic
+$ sudo pip install instantmusic
 ```
 
 For Python 3.4
@@ -135,8 +135,7 @@ alt="Demo" width="240" height="180" border="10" /></a>
 
 ## Disclaimer
 
-Legal Notice: The Author is not responisble for any infringements made by the users of these script
-
+Downloading copyrighted material may be illegal in your country. Use at your own risk.
 
 
 ## The MIT License

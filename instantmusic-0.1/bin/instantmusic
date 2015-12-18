@@ -87,8 +87,9 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             choice = raw_input('Pick one: ')
         title, video_link = available[int(choice)]
 
-        prompt = raw_input('Download "%s"? (y/n) ' % title)
-        if prompt != 'y':
+        valid = ['Y', 'y', '']
+        prompt = raw_input('Download "%s"? (Y/n) ' % title)
+        if prompt not in valid:
             sys.exit()
     # Otherwise, just download the first in available list
     else:
