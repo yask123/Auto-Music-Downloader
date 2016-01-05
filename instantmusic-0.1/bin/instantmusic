@@ -143,7 +143,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             try:
                 album_name = soup.find(id = "album-name-link").text
             except:
-                print ('Cant get album name')
+                print ('Can\'t get album name')
             try:
                 raw_lyrics= (soup.findAll('p', attrs={'class' : 'verse'}))
                 paras=[]
@@ -155,12 +155,12 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
                 print (test1)
                 audiofile.tag.lyrics.set(u''+test1 )
             except:
-                print ('cant get lyrics')           
+                print ('Can\'t get lyrics')           
 
 
         except Exception as e: 
             print(e)
-            print ('error getting album and lyrics')
+            print ('Error getting album and lyrics')
 
 
 
@@ -182,7 +182,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
         audiofile.tag.album =unicode(album_name)
 
         search =  title[:-4]
-        print ('Downloaidng album art..')
+        print ('Downloading album art...')
         image_link= grab_albumart(search)
         str = title
         str = unicode(str, errors='replace')
@@ -200,7 +200,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
         print ('Fixed')
     except Exception as e: 
         print(e)
-        print ('couldnt get album art')
+        print ('Couldn\'t get album art')
 
     return title
 
@@ -224,7 +224,7 @@ def main():
     if not sys.argv[1:]:
         # We do not want to accept empty inputs :)
         while search == '':
-            search = raw_input('Enter songname/ lyrics/ artist.. or whatever\n> ')
+            search = raw_input('Enter songname/ lyrics/ artist... or whatever\n> ')
         search = qp(search)
         downloaded = query_and_download(search)
 
