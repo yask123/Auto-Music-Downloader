@@ -90,7 +90,7 @@ def search_videos(query):
     response = makeRequest('https://www.youtube.com/results?search_query=' + query, {})
     return extract_videos(response.content)
 
-def query_and_download(search, has_prompts=True, is_quiet=False):
+def query_and_download(search, has_prompts=True, is_quiet=False, as_video=False):
     """
     Queries the internet for given lyrics and downloads them into the current working directory.
     If has_prompts is False, will download first available song.
@@ -127,12 +127,11 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     else:
         title, video_link = available[0]
 
+    mp3_token = '' if as_video else '--extract-audio --audio-format mp3 --audio-quality 0'
 
     command_tokens = [
         'youtube-dl',
-        '--extract-audio',
-        '--audio-format mp3',
-        '--audio-quality 0',
+        mp3_token,
         '--output \'%(title)s.%(ext)s\'',
         'https://www.youtube.com' + video_link]
 
@@ -282,6 +281,7 @@ def main():
             parser.add_argument('-q', action='store_true', dest='is_quiet', help="Run in quiet mode. Automatically turns off prompts.")
             parser.add_argument('-s', action='store', dest='song', nargs='+', help='Download a single song.')
             parser.add_argument('-l', action='store', dest='songlist', nargs='+', help='Download a list of songs, with lyrics separated by a comma (e.g. "i tried so hard and got so far, blackbird singing in the dead of night, hey shawty it\'s your birthday).')
+            parser.add_argument('-v', action='store_true', dest='video', help='Download the original youtube video')
             parser.add_argument('-f', action='store', dest='file', nargs='+', help='Download a list of songs from a file input. Each line in the file is considered one song.')
 
             # Parse and check arguments
@@ -304,12 +304,13 @@ def main():
                     songs = [qp(song.strip()) for song in songs if song]
                     song_list.extend(songs)
 
+            video = True if results.video else False
             prompt = True if results.has_prompt else False
             quiet = True if results.is_quiet else False
 
             downloads = []
             for song in song_list:
-                downloads.append(query_and_download(song, prompt, quiet))
+                downloads.append(query_and_download(song, prompt, quiet, video))
 
             print('Downloaded: %s' % ', '.join(downloads))
 
