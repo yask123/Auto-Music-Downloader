@@ -147,7 +147,6 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
         command_tokens.insert(1, '-q')
 
     command = ' '.join(command_tokens)
-    print("Ahahahahha " + command)
 
     # Youtube-dl is a proof that god exists.
     if not is_quiet:
