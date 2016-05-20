@@ -38,14 +38,3 @@ else
     echo "Installer supports debian and mac only."
 fi
 pip install -r requirements.txt
-
-
-
-DistroBasedOn='RedHat'
-DIST=`cat /etc/redhat-release |sed s/\ release.*//`
-PSUEDONAME=`cat /etc/redhat-release | sed s/.*\(// | sed s/\)//`
-REV=`cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//`
-elif [ -f /etc/SuSE-release ] ; then
-DistroBasedOn='SuSe'
-PSUEDONAME=`cat /etc/SuSE-release | tr "\n" ' '| sed s/VERSION.*//`
-REV=`cat /etc/SuSE-release | tr "\n" ' ' | sed s/.*=\ //`
