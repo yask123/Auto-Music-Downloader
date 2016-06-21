@@ -65,3 +65,5 @@ venv/
 *.m4a
 *.part
 *.webm
+
+.idea/*

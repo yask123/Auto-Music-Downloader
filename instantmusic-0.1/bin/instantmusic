@@ -13,6 +13,7 @@ import sys
 
 if (sys.version_info > (3, 0)):
     from urllib.parse import quote_plus as qp
+
     raw_input = input
     unicode = str
 else:
@@ -55,10 +56,10 @@ def grab_albumart(search=''):
     req = makeRequest(site, hdr)
 
     content = str(req.content)
-    end =  content.find('jpg')
-    start= content[:end].rfind('http')
+    end = content.find('jpg')
+    start = content[:end].rfind('http')
 
-    return content[start:end+3]
+    return content[start:end + 3]
 
 
 def list_movies(movies):
@@ -90,6 +91,7 @@ def search_videos(query):
     response = makeRequest('https://www.youtube.com/results?search_query=' + query, {})
     return extract_videos(response.content)
 
+
 def query_and_download(search, has_prompts=True, is_quiet=False):
     """
     Queries the internet for given lyrics and downloads them into the current working directory.
@@ -106,7 +108,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     if not is_quiet:
         if not available:
             print('No results found matching your query.')
-            sys.exit(2) # Indicate failure using the exit code
+            sys.exit(2)  # Indicate failure using the exit code
         else:
             if has_prompts:
                 print('Found:', '\n'.join(list_movies(available)))
@@ -126,15 +128,22 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     # Otherwise, just download the first in available list
     else:
         title, video_link = available[0]
-
+    # Ask user for a file name
+    filename = raw_input('Save the file as (Press "Enter" for default name) ? ')
+    # Use the default title if the user doesnt give any filename
+    if filename != "":
+        output_token = "-o '%s" % filename
+        output_token += ".%(ext)s'"
+    else:
+        output_token = "-o '%(title)s.%(ext)s'"
 
     command_tokens = [
         'youtube-dl',
         '--extract-audio',
         '--audio-format mp3',
         '--audio-quality 0',
-        '--output \'%(title)s.%(ext)s\'',
-        'https://www.youtube.com' + video_link]
+        output_token,
+        'http://www.youtube.com/' + video_link]
 
     if is_quiet:
         command_tokens.insert(1, '-q')
@@ -146,23 +155,19 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     if not is_quiet:
         print('Downloading')
     os.system(command)
-    
-    #Fixing id3 tags
+
+    # Fixing id3 tags
     try:
-        print ('Fixing id3 tags')
-        list_name = title
-        artist = ''
-        track_name = title
-        if '-' in title:
-            list_name = title.split('-')
-            artist=list_name[0]
-            track_name = list_name[1]
-        album_name=''
+        print('Fixing id3 tags')
+        list_name = title.split('-')
+        artist = list_name[0]
+        track_name = list_name[1]
+        album_name = ''
         try:
             try:
-                audiofile = eyed3.load((title+'.mp3'))
+                audiofile = eyed3.load((title + '.mp3'))
             except:
-                audiofile = eyed3.load((title+'.m4a')) 
+                audiofile = eyed3.load((title + '.m4a'))
 
             url = 'https://www.google.com/search?q='+qp(title)
             req = makeRequest(url, {})
@@ -174,28 +179,26 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             html_doc=  a.content
             soup = BeautifulSoup(html_doc, 'html.parser')
             try:
-                album_name = soup.find(id = "album-name-link").text
+                album_name = soup.find(id="album-name-link").text
             except:
-                print ('Cant get album name')
+                print('Cant get album name')
             try:
-                raw_lyrics= (soup.findAll('p', attrs={'class' : 'verse'}))
-                paras=[]
-                test1=unicode.join(u'\n',map(unicode,raw_lyrics))
+                raw_lyrics = (soup.findAll('p', attrs={'class': 'verse'}))
+                paras = []
+                test1 = unicode.join(u'\n', map(unicode, raw_lyrics))
 
-                test1= (test1.replace('<p class="verse">','\n'))
-                test1= (test1.replace('<br/>',' '))
-                test1 = test1.replace('</p>',' ')
-                print (test1)
-                audiofile.tag.lyrics.set(u''+test1 )
+                test1 = (test1.replace('<p class="verse">', '\n'))
+                test1 = (test1.replace('<br/>', ' '))
+                test1 = test1.replace('</p>', ' ')
+                print(test1)
+                audiofile.tag.lyrics.set(u'' + test1)
             except:
                 print ('cant get lyrics')
 
 
         except Exception as e:
             print(e)
-            print ('error getting album and lyrics')
-
-
+            print('error getting album and lyrics')
 
         print (artist,track_name,album_name)
 
@@ -206,9 +209,9 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             else:
                 return s.strip()
 
-        artist=fix_string(artist)
-        track_name=fix_string(track_name)
-        album_name=fix_string(album_name)
+        artist = fix_string(artist)
+        track_name = fix_string(track_name)
+        album_name = fix_string(album_name)
 
         audiofile.tag.artist = unicode(artist)
         audiofile.tag.title = unicode(track_name)
@@ -226,14 +229,15 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
         response = makeRequest(image_link, {}).content
         imagedata = response
 
-        audiofile.tag.images.set(0,imagedata,"image/jpeg",u"Album Art")
+        audiofile.tag.images.set(0, imagedata, "image/jpeg", u"Album Art")
         audiofile.tag.save()
-        print ('Fixed')
-    except Exception as e: 
+        print('Fixed')
+    except Exception as e:
         print(e)
-        print ('couldnt get album art')
+        print('couldnt get album art')
 
     return title
+
 
 def search_uses_flags(argstring, *flags):
     """
@@ -243,6 +247,7 @@ def search_uses_flags(argstring, *flags):
         if (argstring.find(flag) != 0):
             return True
     return False
+
 
 def main():
     """
@@ -279,10 +284,13 @@ def main():
             import argparse
             parser = argparse.ArgumentParser(description='Instantly download any song!')
             parser.add_argument('-p', action='store_false', dest='has_prompt', help="Turn off download prompts")
-            parser.add_argument('-q', action='store_true', dest='is_quiet', help="Run in quiet mode. Automatically turns off prompts.")
+            parser.add_argument('-q', action='store_true', dest='is_quiet',
+                                help="Run in quiet mode. Automatically turns off prompts.")
             parser.add_argument('-s', action='store', dest='song', nargs='+', help='Download a single song.')
-            parser.add_argument('-l', action='store', dest='songlist', nargs='+', help='Download a list of songs, with lyrics separated by a comma (e.g. "i tried so hard and got so far, blackbird singing in the dead of night, hey shawty it\'s your birthday).')
-            parser.add_argument('-f', action='store', dest='file', nargs='+', help='Download a list of songs from a file input. Each line in the file is considered one song.')
+            parser.add_argument('-l', action='store', dest='songlist', nargs='+',
+                                help='Download a list of songs, with lyrics separated by a comma (e.g. "i tried so hard and got so far, blackbird singing in the dead of night, hey shawty it\'s your birthday).')
+            parser.add_argument('-f', action='store', dest='file', nargs='+',
+                                help='Download a list of songs from a file input. Each line in the file is considered one song.')
 
             # Parse and check arguments
             results = parser.parse_args()
@@ -312,6 +320,7 @@ def main():
                 downloads.append(query_and_download(song, prompt, quiet))
 
             print('Downloaded: %s' % ', '.join(downloads))
+
 
 if __name__ == '__main__':
     main()
