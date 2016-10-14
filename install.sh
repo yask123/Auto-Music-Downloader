@@ -2,6 +2,7 @@
 
 if [ "$(uname)" == "Darwin" ]; then
     # Mac OS found. Installing deps
+    #Dang just for hacktober fest 2016
     sudo easy_install pip
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     # Linux platform found. Installing deps
