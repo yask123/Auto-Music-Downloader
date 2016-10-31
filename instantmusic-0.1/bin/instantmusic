@@ -178,22 +178,17 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             except:
                 print ('Cant get album name')
             try:
-                test1 = ('')
+                lyrics = ('')
                 raw_lyrics= (soup.findAll('p', attrs={'class' : 'verse'}))
                 for line in raw_lyrics:
-                    test1 = test1 + str(line.get_text()) + '\n'
-                
-                print (test1)
-                audiofile.tag.lyrics.set(u''+test1 )
+                    lyrics = lyrics + str(line.get_text()) + '\n'
+                print (lyrics)
+                audiofile.tag.lyrics.set(u''+lyrics)
             except:
                 print ('cant get lyrics')
-
-
         except Exception as e:
             print(e)
             print ('error getting album and lyrics')
-
-
 
         print (artist,track_name,album_name)
 
