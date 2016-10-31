@@ -180,8 +180,8 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             try:
                 lyrics = ('')
                 raw_lyrics= (soup.findAll('p', attrs={'class' : 'verse'}))
-                for line in raw_lyrics:
-                    lyrics = lyrics + str(line.get_text()) + '\n'
+                for each_line in raw_lyrics:
+                    lyrics = lyrics + str(each_line.get_text()) + '\n'
                 print (lyrics)
                 audiofile.tag.lyrics.set(u''+lyrics)
             except:
