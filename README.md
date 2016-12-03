@@ -1,4 +1,6 @@
 # Instantly download any song! :guitar: :notes: :musical_score: :trumpet: :violin:
+
+[![Join the chat at https://gitter.im/yask123/Instant-Music-Downloader](https://badges.gitter.im/yask123/Instant-Music-Downloader.svg)](https://gitter.im/yask123/Instant-Music-Downloader?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/yask123/Instant-Music-Downloader.svg?branch=master)](https://travis-ci.org/yask123/Instant-Music-Downloader)
 [![PyPI](https://img.shields.io/pypi/v/Instantmusic.svg)](https://pypi.python.org/pypi/instantmusic/1.3)
 
