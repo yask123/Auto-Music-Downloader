@@ -129,6 +129,14 @@ $ sudo pip install fixalbumart
 
 
 
+```zsh
+>> Enter songname/ lyrics/ artist.. or whatever
+
+dududududududududududu
+
+>>Downloaded SANDSTORM (darude)
+```
+
 ### Video
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=H2GQc81hpBE
 " target="_blank"><img src="http://img.youtube.com/vi/H2GQc81hpBE/0.jpg" 
