@@ -15,8 +15,10 @@ if (sys.version_info > (3, 0)):
     from urllib.parse import quote_plus as qp
     raw_input = input
     unicode = str
+    PY3 = True
 else:
     from urllib import quote_plus as qp
+    PY3 = False
 
 
 def extract_videos(html):
@@ -63,7 +65,10 @@ def grab_albumart(search=''):
 
 def list_movies(movies):
     for idx, (title, _) in enumerate(movies):
-        yield '[{}] {}'.format(idx, title.decode('utf-8').encode(sys.stdout.encoding))
+        if sys.platform.startswith('linux') and PY3:
+            yield '[{}] {}'.format(idx, title.decode('utf8'))
+        else:
+            yield '[{}] {}'.format(idx, title.decode('utf-8').encode(sys.stdout.encoding))
 
 def get_lyrics_url(response):
     """
@@ -109,7 +114,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             sys.exit(2) # Indicate failure using the exit code
         else:
             if has_prompts:
-                print('Found:', '\n'.join(list_movies(available)))
+                print('Found:\n', '\n'.join(list_movies(available)))
 
     # We only ask the user which one they want if prompts are on, of course
     if has_prompts and not is_quiet:
@@ -304,7 +309,11 @@ def main():
             for song in song_list:
                 downloads.append(query_and_download(song, prompt, quiet))
 
-            print('Downloaded: %s' % ', '.join(downloads))
+            try:
+                print('Downloaded: %s' % ', '.join(downloads))
+            except TypeError:
+                print('Downloaded: {}'.format(', '.join(map(lambda x: str(x), downloads))))
+
 
 if __name__ == '__main__':
     main()
