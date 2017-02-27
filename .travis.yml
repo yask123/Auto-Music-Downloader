@@ -6,9 +6,12 @@ python:
   - "3.3"
   - "3.4"
   - "3.5"
-  - "3.5-dev" # 3.5 development branch
+  - "3.5"
   - "nightly" # currently points to 3.6-dev
 # command to install dependencies
 install: "pip install -r requirements-dev.txt"
 # command to run tests
-script: nosetests
+script:
+  - "python setup.py test"
+  - "python -m flake8"
+  - nosetests
