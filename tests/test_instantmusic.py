@@ -61,7 +61,8 @@ def test_list_movies():
     [
         ('random_text', ''),
         ('https://www.metrolyrics.com', 'htt'),
-        ('http://www.metrolyrics.com', 'htt'), ]
+        ('http://www.metrolyrics.com', 'htt'),
+    ]
 )
 def test_get_lyrics_url(response, exp_res):
     """test func."""

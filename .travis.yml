@@ -3,10 +3,11 @@ addons:
   apt:
     packages:
     - pandoc
+    - python-eyed3
 python:
   #- "2.6"
   - "2.7"
-  - "3.2"
+  #- "3.2"
   - "3.3"
   - "3.4"
   - "3.5"
@@ -18,4 +19,5 @@ install: "pip install -r requirements-dev.txt"
 script:
   - "python setup.py test"
   - "python -m flake8"
-  - nosetests
+  #- nosetests
+  - 'python -m pytest'
