@@ -1,4 +1,3 @@
 -r requirements.txt
 pytest
 flake8
-pypandoc==1.3.3
