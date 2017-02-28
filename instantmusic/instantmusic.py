@@ -135,6 +135,32 @@ def print_video_search_result(search_result, is_quiet, has_prompts):
                 print('Found:\n', '\n'.join(list_movies(available)))
 
 
+def pick_from_search_result(search_result):
+    """pick from search result.
+
+    Args:
+        search_result (list): List from search result.
+
+    Returns:
+        tuple: (title, video link)
+    """
+    # compatiblity
+    available = search_result
+
+    choice = raw_input('Pick one: ')
+    while not(choice.isdigit()) or not(0 <= int(choice) < len(available)):
+        print("Oups, that was wrong. Try again!")
+        choice = raw_input('Pick one: ')
+    title, video_link = available[int(choice)]
+
+    valid = ['Y', 'y', '']
+    prompt = raw_input('Download "%s"? (y/n) ' % title)
+    if prompt.lower() not in valid:
+        sys.exit()
+
+    return title, video_link
+
+
 def query_and_download(search, has_prompts=True, is_quiet=False):
     """query and download.
 
@@ -157,16 +183,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
     # We only ask the user which one they want if prompts are on, of course
     if has_prompts and not is_quiet:
-        choice = raw_input('Pick one: ')
-        while not(choice.isdigit()) or not(0 <= int(choice) < len(available)):
-            print("Oups, that was wrong. Try again!")
-            choice = raw_input('Pick one: ')
-        title, video_link = available[int(choice)]
-
-        valid = ['Y', 'y', '']
-        prompt = raw_input('Download "%s"? (y/n) ' % title)
-        if prompt.lower() not in valid:
-            sys.exit()
+        pick_from_search_result(search_result=available)
     # Otherwise, just download the first in available list
     else:
         title, video_link = available[0]
