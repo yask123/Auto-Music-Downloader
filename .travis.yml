@@ -1,5 +1,8 @@
 language: python
-addons: { apt_packages: [pandoc] }
+addons:
+  apt:
+    packages:
+    - pandoc
 python:
   - "2.6"
   - "2.7"
