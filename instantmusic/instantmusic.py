@@ -161,6 +161,93 @@ def pick_from_search_result(search_result):
     return title, video_link
 
 
+def fix_id3_tags(title):
+    """fix id3 tags.
+
+    Args:
+        title (str): Title.
+
+    Returns:
+        str: Modified title.
+    """
+    print('Fixing id3 tags')
+    list_name = title
+    artist = ''
+    track_name = title
+    if '-' in title:
+        list_name = title.split('-')
+        artist = list_name[0]
+        track_name = list_name[1]
+    album_name = ''
+    try:
+        try:
+            audiofile = eyed3.load((title + '.mp3'))
+        except:
+            audiofile = eyed3.load((title + '.m4a'))
+
+        url = 'https://www.google.com/search?q=' + qp(title)
+        req = make_request(url, {})
+        response = req.content
+        result = response
+        lyrics_html = get_lyrics_url(result)
+        a = make_request(lyrics_html, {})
+        print(lyrics_html)
+        html_doc = a.content
+        soup = BeautifulSoup(html_doc, 'html.parser')
+        try:
+            album_name = soup.find(id="album-name-link").text
+        except:
+            print('Cant get album name')
+        try:
+            lyrics = ('')
+            raw_lyrics = (soup.findAll('p', attrs={'class': 'verse'}))
+            for each_line in raw_lyrics:
+                lyrics = lyrics + str(each_line.get_text()) + '\n'
+            print(lyrics)
+            # python3.2's flake8 mark this line as error E900, SKIP IT
+            audiofile.tag.lyrics.set(u'' + lyrics)  # NOQA
+        except:
+            print('cant get lyrics')
+    except Exception as e:
+        print(e)
+        print('error getting album and lyrics')
+
+    print(artist, track_name, album_name)
+
+    def fix_string(s):
+        location = s.find('[')
+        if location != -1:
+            return s[:location].strip()
+        else:
+            return s.strip()
+
+    artist = fix_string(artist)
+    track_name = fix_string(track_name)
+    album_name = fix_string(album_name)
+
+    audiofile.tag.artist = unicode(artist)
+    audiofile.tag.title = unicode(track_name)
+    audiofile.tag.album = unicode(album_name)
+
+    search = title[:-4]
+    print('Downloading album art..')
+    image_link = grab_albumart(search)
+    title = unicode(title, errors='replace').encode('utf8')
+    print('Fixing ' + title)
+    eyed3.log.setLevel("ERROR")
+    if audiofile.tag is None:
+        audiofile.tag = eyed3.id3.Tag()
+        audiofile.tag.file_info = eyed3.id3.FileInfo("foo.id3")
+    response = make_request(image_link, {}).content
+    imagedata = response
+
+    audiofile.tag.images.set(0, imagedata, "image/jpeg", u"Album Art")
+    audiofile.tag.save()
+    print('Fixed')
+
+    return title
+
+
 def query_and_download(search, has_prompts=True, is_quiet=False):
     """query and download.
 
@@ -208,80 +295,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
     # Fixing id3 tags
     try:
-        print('Fixing id3 tags')
-        list_name = title
-        artist = ''
-        track_name = title
-        if '-' in title:
-            list_name = title.split('-')
-            artist = list_name[0]
-            track_name = list_name[1]
-        album_name = ''
-        try:
-            try:
-                audiofile = eyed3.load((title + '.mp3'))
-            except:
-                audiofile = eyed3.load((title + '.m4a'))
-
-            url = 'https://www.google.com/search?q=' + qp(title)
-            req = make_request(url, {})
-            response = req.content
-            result = response
-            lyrics_html = get_lyrics_url(result)
-            a = make_request(lyrics_html, {})
-            print(lyrics_html)
-            html_doc = a.content
-            soup = BeautifulSoup(html_doc, 'html.parser')
-            try:
-                album_name = soup.find(id="album-name-link").text
-            except:
-                print('Cant get album name')
-            try:
-                lyrics = ('')
-                raw_lyrics = (soup.findAll('p', attrs={'class': 'verse'}))
-                for each_line in raw_lyrics:
-                    lyrics = lyrics + str(each_line.get_text()) + '\n'
-                print(lyrics)
-                # python3.2's flake8 mark this line as error E900, SKIP IT
-                audiofile.tag.lyrics.set(u'' + lyrics)  # NOQA
-            except:
-                print('cant get lyrics')
-        except Exception as e:
-            print(e)
-            print('error getting album and lyrics')
-
-        print(artist, track_name, album_name)
-
-        def fix_string(s):
-            location = s.find('[')
-            if location != -1:
-                return s[:location].strip()
-            else:
-                return s.strip()
-
-        artist = fix_string(artist)
-        track_name = fix_string(track_name)
-        album_name = fix_string(album_name)
-
-        audiofile.tag.artist = unicode(artist)
-        audiofile.tag.title = unicode(track_name)
-        audiofile.tag.album = unicode(album_name)
-
-        search = title[:-4]
-        print('Downloading album art..')
-        image_link = grab_albumart(search)
-        title = unicode(title, errors='replace').encode('utf8')
-        print('Fixing ' + title)
-        eyed3.log.setLevel("ERROR")
-        if audiofile.tag is None:
-            audiofile.tag = eyed3.id3.Tag()
-            audiofile.tag.file_info = eyed3.id3.FileInfo("foo.id3")
-        response = make_request(image_link, {}).content
-        imagedata = response
-
-        audiofile.tag.images.set(0, imagedata, "image/jpeg", u"Album Art")
-        audiofile.tag.save()
-        print('Fixed')
+        title = fix_id3_tags(title)
     except Exception as e:
         print(e)
         print('couldnt get album art')
