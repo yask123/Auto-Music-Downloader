@@ -115,6 +115,26 @@ def search_videos(query):
     return extract_videos(response.content)
 
 
+def print_video_search_result(search_result, is_quiet, has_prompts):
+    """print video search result.
+
+    Args:
+        search_result (list): Search result.
+        is_quiet (bool): Don't print anything.
+        has_prompts (bool): Prompt list of search result.
+    """
+    # compatiblity
+    available = search_result
+
+    if not is_quiet:
+        if not available:
+            print('No results found matching your query.')
+            sys.exit(2)  # Indicate failure using the exit code
+        else:
+            if has_prompts:
+                print('Found:\n', '\n'.join(list_movies(available)))
+
+
 def query_and_download(search, has_prompts=True, is_quiet=False):
     """query and download.
 
@@ -132,13 +152,8 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
     available = search_videos(search)
 
-    if not is_quiet:
-        if not available:
-            print('No results found matching your query.')
-            sys.exit(2)  # Indicate failure using the exit code
-        else:
-            if has_prompts:
-                print('Found:\n', '\n'.join(list_movies(available)))
+    print_video_search_result(
+        search_result=available, is_quiet=is_quiet, has_prompts=has_prompts)
 
     # We only ask the user which one they want if prompts are on, of course
     if has_prompts and not is_quiet:
