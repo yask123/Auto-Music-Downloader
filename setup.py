@@ -17,7 +17,9 @@ except ImportError:
 setup(
     name='instantmusic',
     version='1.2',
-    description='Instantly download any song! Without knowing the name of the song!!!!',
+    description=(
+        'Instantly download any song! '
+        'Without knowing the name of the song!!!!'),
     long_description=read_md('README.md'),
     author='Yask Srivastava',
     author_email='yask123@gmail.com',
