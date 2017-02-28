@@ -210,7 +210,8 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
                 for each_line in raw_lyrics:
                     lyrics = lyrics + str(each_line.get_text()) + '\n'
                 print(lyrics)
-                audiofile.tag.lyrics.set(u'' + lyrics)
+                # python3.2's flake8 mark this line as error E900, SKIP IT
+                audiofile.tag.lyrics.set(u'' + lyrics)  # NOQA
             except:
                 print('cant get lyrics')
         except Exception as e:
