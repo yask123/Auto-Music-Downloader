@@ -24,7 +24,11 @@ else:
 
 
 def extract_videos(html):
-    """Parse given html and returns a list of (Title, Link) for every movie found."""
+    """Extract videos.
+
+    Parse given html and returns a list of (Title, Link)
+    for every movie found.
+    """
     soup = BeautifulSoup(html, 'html.parser')
     pattern = re.compile(r'/watch\?v=')
     found = soup.find_all('a', 'yt-uix-tile-link', href=pattern)
@@ -53,7 +57,7 @@ def grab_albumart(search=''):
     site = "https://www.google.com/search?site=&tbm=isch&source=hp&biw=1112&bih=613&q=" + search + "&oq=backst&gs_l=img.3.0.0l10.1011.3209.0.4292.8.7.1.0.0.0.246.770.0j3j1.4.0..3..0...1.1.64.img..3.5.772.KyXkrVfTLT4#tbm=isch&q=back+street+boys+I+want+it+that+way"  # NOQA
     hdr = {
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',  # NOQA
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',  # NOQA
         'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
         'Accept-Encoding': 'none',
         'Accept-Language': 'en-US,en;q=0.8',
@@ -74,7 +78,8 @@ def list_movies(movies):
         if sys.platform.startswith('linux') and PY3:
             yield '[{}] {}'.format(idx, title.decode('utf8'))
         else:
-            yield '[{}] {}'.format(idx, title.decode('utf-8').encode(sys.stdout.encoding))
+            yield '[{}] {}'.format(
+                idx, title.decode('utf-8').encode(sys.stdout.encoding))
 
 
 def get_lyrics_url(response):
@@ -85,7 +90,7 @@ def get_lyrics_url(response):
     except TypeError:
         link_start = response.find(metrolyrics.encode('utf8'))
     if link_start is -1:
-        print ("Not able to find https, trying http")
+        print("Not able to find https, trying http")
         metrolyrics = 'http://www.metrolyrics.com'
         try:
             link_start = response.find(metrolyrics)
@@ -93,7 +98,7 @@ def get_lyrics_url(response):
             link_start = response.find(metrolyrics.encode('utf8'))
 
     if link_start is -1:
-        print ("Metro lyrics not found")
+        print("Metro lyrics not found")
         return ""
     try:
         link_end = response.find('html', link_start + 1)
@@ -105,12 +110,16 @@ def get_lyrics_url(response):
 
 def search_videos(query):
     """Searche for videos given a query."""
-    response = make_request('https://www.youtube.com/results?search_query=' + query, {})
+    response = make_request(
+        'https://www.youtube.com/results?search_query=' + query, {})
     return extract_videos(response.content)
 
 
 def query_and_download(search, has_prompts=True, is_quiet=False):
-    """Query the internet for given lyrics and downloads them into the current working directory.
+    """query and download.
+
+    Query the internet for given lyrics and
+    downloads them into the current working directory.
 
     If has_prompts is False, will download first available song.
     If is_quiet is True, will run beautiful-soup in quiet mode.
@@ -167,7 +176,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
     # Fixing id3 tags
     try:
-        print ('Fixing id3 tags')
+        print('Fixing id3 tags')
         list_name = title
         artist = ''
         track_name = title
@@ -188,27 +197,27 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             result = response
             lyrics_html = get_lyrics_url(result)
             a = make_request(lyrics_html, {})
-            print (lyrics_html)
+            print(lyrics_html)
             html_doc = a.content
             soup = BeautifulSoup(html_doc, 'html.parser')
             try:
                 album_name = soup.find(id="album-name-link").text
             except:
-                print ('Cant get album name')
+                print('Cant get album name')
             try:
                 lyrics = ('')
                 raw_lyrics = (soup.findAll('p', attrs={'class': 'verse'}))
                 for each_line in raw_lyrics:
                     lyrics = lyrics + str(each_line.get_text()) + '\n'
-                print (lyrics)
+                print(lyrics)
                 audiofile.tag.lyrics.set(u'' + lyrics)
             except:
-                print ('cant get lyrics')
+                print('cant get lyrics')
         except Exception as e:
             print(e)
-            print ('error getting album and lyrics')
+            print('error getting album and lyrics')
 
-        print (artist, track_name, album_name)
+        print(artist, track_name, album_name)
 
         def fix_string(s):
             location = s.find('[')
@@ -226,10 +235,10 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
         audiofile.tag.album = unicode(album_name)
 
         search = title[:-4]
-        print ('Downloading album art..')
+        print('Downloading album art..')
         image_link = grab_albumart(search)
         title = unicode(title, errors='replace').encode('utf8')
-        print ('Fixing ' + title)
+        print('Fixing ' + title)
         eyed3.log.setLevel("ERROR")
         if audiofile.tag is None:
             audiofile.tag = eyed3.id3.Tag()
@@ -239,16 +248,20 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
         audiofile.tag.images.set(0, imagedata, "image/jpeg", u"Album Art")
         audiofile.tag.save()
-        print ('Fixed')
+        print('Fixed')
     except Exception as e:
         print(e)
-        print ('couldnt get album art')
+        print('couldnt get album art')
 
     return title
 
 
 def search_uses_flags(argstring, *flags):
-    """Check if the given flags are being used in the command line argument string."""
+    """search uses flags.
+
+    Check if the given flags are being used
+    in the command line argument string.
+    """
     for flag in flags:
         if (argstring.find(flag) != 0):
             return True
@@ -264,7 +277,8 @@ def main():
     if not sys.argv[1:]:
         # We do not want to accept empty inputs :)
         while search == '':
-            search = raw_input('Enter songname / lyrics / artist.. or whatever\n> ')
+            search = raw_input(
+                'Enter songname / lyrics / artist.. or whatever\n> ')
         search = qp(search)
         query_and_download(search)
 
@@ -280,12 +294,14 @@ def main():
             # Default to -s
             lyrics = argument_string.replace('-p', '').replace('-q', '')
             search = qp(lyrics)
-            query_and_download(search, not search_uses_flags('-p'), search_uses_flags('-q'))
+            query_and_download(
+                search, not search_uses_flags('-p'), search_uses_flags('-q'))
 
         # Some input flags are specified
         else:
             # Lots of parser-building fun!
-            parser = argparse.ArgumentParser(description='Instantly download any song!')
+            parser = argparse.ArgumentParser(
+                description='Instantly download any song!')
             parser.add_argument(
                 '-p', action='store_false', dest='has_prompt',
                 help="Turn off download prompts")
@@ -298,9 +314,11 @@ def main():
             parser.add_argument(
                 '-l', action='store', dest='songlist', nargs='+',
                 help=(
-                    'Download a list of songs, with lyrics separated by a comma '
+                    'Download a list of songs, '
+                    'with lyrics separated by a comma '
                     '(e.g. "i tried so hard and got so far, '
-                    'blackbird singing in the dead of night, hey shawty it\'s your birthday).'))
+                    'blackbird singing in the dead of night, '
+                    'hey shawty it\'s your birthday).'))
             parser.add_argument(
                 '-f', action='store', dest='file', nargs='+',
                 help=(
@@ -337,7 +355,8 @@ def main():
             try:
                 print('Downloaded: %s' % ', '.join(downloads))
             except TypeError:
-                print('Downloaded: {}'.format(', '.join(map(lambda x: str(x), downloads))))
+                print('Downloaded: {}'.format(
+                    ', '.join(map(lambda x: str(x), downloads))))
 
 
 if __name__ == '__main__':
