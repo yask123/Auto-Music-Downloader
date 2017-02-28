@@ -270,7 +270,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
     # We only ask the user which one they want if prompts are on, of course
     if has_prompts and not is_quiet:
-        pick_from_search_result(search_result=available)
+        title, video_link = pick_from_search_result(search_result=available)
     # Otherwise, just download the first in available list
     else:
         title, video_link = available[0]
