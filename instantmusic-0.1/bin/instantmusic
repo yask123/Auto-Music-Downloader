@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 import os
@@ -27,7 +27,7 @@ def extract_videos(html):
     soup = BeautifulSoup(html, 'html.parser')
     pattern = re.compile(r'/watch\?v=')
     found = soup.find_all('a', 'yt-uix-tile-link', href=pattern)
-    return [(x.text.encode('utf-8'), x.get('href')) for x in found]
+    return [(x.text, x.get('href')) for x in found]
 
 def makeRequest(url, hdr):
     http_proxy  = os.environ.get("HTTP_PROXY")
@@ -63,7 +63,7 @@ def grab_albumart(search=''):
 
 def list_movies(movies):
     for idx, (title, _) in enumerate(movies):
-        yield '[{}] {}'.format(idx, title.decode('utf-8').encode(sys.stdout.encoding))
+        yield '[{}] {}'.format(idx, title.encode(sys.stdout.encoding))
 
 def get_lyrics_url(response):
     """
@@ -75,7 +75,7 @@ def get_lyrics_url(response):
         print ("Not able to find https, trying http")
         metrolyrics = 'http://www.metrolyrics.com'
         link_start = response.find(metrolyrics)
-    
+
     if link_start is -1:
         print ("Metro lyrics not found")
         return ""
@@ -89,6 +89,9 @@ def search_videos(query):
     """
     response = makeRequest('https://www.youtube.com/results?search_query=' + query, {})
     return extract_videos(response.content)
+
+def cleanup(title):
+    return title.replace("Official Video","").replace("()","").strip()
 
 def query_and_download(search, has_prompts=True, is_quiet=False):
     """
@@ -127,13 +130,13 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     else:
         title, video_link = available[0]
 
-
+    title = cleanup(title)
     command_tokens = [
         'youtube-dl',
         '--extract-audio',
         '--audio-format mp3',
         '--audio-quality 0',
-        '--output \'%(title)s.%(ext)s\'',
+        '--output \'{}.%(ext)s\''.format(title),
         'https://www.youtube.com' + video_link]
 
     if is_quiet:
@@ -146,7 +149,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     if not is_quiet:
         print('Downloading')
     os.system(command)
-    
+
     #Fixing id3 tags
     try:
         print ('Fixing id3 tags')
@@ -164,17 +167,22 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             except:
                 audiofile = eyed3.load((title+'.m4a')) 
 
-            url = 'https://www.google.com/search?q='+qp(title)
+            url = 'https://www.google.com/search?q='+qp(title) + ' site:metrolyrics.com'
             req = makeRequest(url, {})
-            response = req.content
+            response = req.text
             result=response
-            lyrics_html = get_lyrics_url(result) 
+            lyrics_html = get_lyrics_url(result)
+            if not lyrics_html:
+                print('Could not download lyrics')
+
             a = makeRequest(lyrics_html, {})
             print (lyrics_html)
+
             html_doc=  a.content
             soup = BeautifulSoup(html_doc, 'html.parser')
             try:
-                album_name = soup.find(id = "album-name-link").text
+                album_name = soup.find("div", {"class" : "content-container"}).find('a').text
+                # print( album_name)
             except:
                 print ('Cant get album name')
             try:
@@ -182,7 +190,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
                 raw_lyrics= (soup.findAll('p', attrs={'class' : 'verse'}))
                 for each_line in raw_lyrics:
                     lyrics = lyrics + str(each_line.get_text()) + '\n'
-                print (lyrics)
+                # print (lyrics)
                 audiofile.tag.lyrics.set(u''+lyrics)
             except:
                 print ('cant get lyrics')
@@ -198,7 +206,6 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
                 return s[:location].strip()
             else:
                 return s.strip()
-
         artist=fix_string(artist)
         track_name=fix_string(track_name)
         album_name=fix_string(album_name)
@@ -210,7 +217,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
         search =  title[:-4]
         print ('Downloading album art..')
         image_link= grab_albumart(search)
-        title = unicode(title, errors='replace').encode('utf8')
+        # title = unicode(title, errors='replace').encode('utf8')
         print ('Fixing '+title)
         eyed3.log.setLevel("ERROR")
         if audiofile.tag is None:
