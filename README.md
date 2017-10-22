@@ -116,6 +116,7 @@ $ sudo pip install fixalbumart
 
 >> Fixing taylor swift - love story
 >> In the end - Linkin park 
+>> Budapest - George Ezra
 ......
 
 >> Fixed all songs
