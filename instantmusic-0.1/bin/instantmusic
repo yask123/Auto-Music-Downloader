@@ -28,6 +28,7 @@ def extract_videos(html):
     found = soup.find_all('a', 'yt-uix-tile-link', href=pattern)
     return [(x.text.encode('utf-8'), x.get('href')) for x in found]
 
+
 def makeRequest(url, hdr):
     http_proxy  = os.environ.get("HTTP_PROXY")
     https_proxy = os.environ.get("HTTPS_PROXY")
@@ -41,6 +42,7 @@ def makeRequest(url, hdr):
 
     req = requests.get(url, headers=hdr, proxies=proxyDict)
     return req
+
 
 def grab_albumart(search=''):
     search = qp(search)
@@ -64,23 +66,28 @@ def list_movies(movies):
     for idx, (title, _) in enumerate(movies):
         yield '[{}] {}'.format(idx, title.decode('utf-8').encode(sys.stdout.encoding))
 
+
 def get_lyrics_url(response):
     """
     Getting the url for lyrics.
     """
-    metrolyrics = 'https://www.metrolyrics.com'
-    link_start = response.find(metrolyrics)
+    metrolyrics = '://www.metrolyrics.com'
+
+    """
+    Try https
+    """
+    link_start = response.find("https" + metrolyrics)
     if link_start is -1:
         print ("Not able to find https, trying http")
-        metrolyrics = 'http://www.metrolyrics.com'
-        link_start = response.find(metrolyrics)
+        link_start = response.find("http" + metrolyrics)
     
     if link_start is -1:
         print ("Metro lyrics not found")
         return ""
-    link_end = response.find('html',link_start + 1)
+    link_end = response.find('html', link_start + 1)
     link = response[link_start:link_end + 4]
     return link
+
 
 def search_videos(query):
     """
@@ -88,6 +95,7 @@ def search_videos(query):
     """
     response = makeRequest('https://www.youtube.com/results?search_query=' + query, {})
     return extract_videos(response.content)
+
 
 def query_and_download(search, has_prompts=True, is_quiet=False):
     """
@@ -149,14 +157,13 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     #Fixing id3 tags
     try:
         print ('Fixing id3 tags')
-        list_name = title
         artist = ''
         track_name = title
         if '-' in title:
             list_name = title.split('-')
             artist=list_name[0]
             track_name = list_name[1]
-        album_name=''
+        album_name = ''
         try:
             try:
                 audiofile = eyed3.load((title+'.mp3'))
@@ -189,7 +196,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             print(e)
             print ('error getting album and lyrics')
 
-        print (artist,track_name,album_name)
+        print (artist, track_name, album_name)
 
         def fix_string(s):
             location = s.find('[')
@@ -227,6 +234,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
     return title
 
+
 def search_uses_flags(argstring, *flags):
     """
     Check if the given flags are being used in the command line argument string
@@ -235,6 +243,7 @@ def search_uses_flags(argstring, *flags):
         if (argstring.find(flag) != 0):
             return True
     return False
+
 
 def main():
     """
@@ -304,6 +313,7 @@ def main():
                 downloads.append(query_and_download(song, prompt, quiet))
 
             print('Downloaded: %s' % ', '.join(downloads))
+
 
 if __name__ == '__main__':
     main()
