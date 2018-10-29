@@ -1,9 +1,10 @@
 # Instantly download any song! :guitar: :notes: :musical_score: :trumpet: :violin:
+
+[![Join the chat at https://gitter.im/yask123/Instant-Music-Downloader](https://badges.gitter.im/yask123/Instant-Music-Downloader.svg)](https://gitter.im/yask123/Instant-Music-Downloader?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/yask123/Instant-Music-Downloader.svg?branch=master)](https://travis-ci.org/yask123/Instant-Music-Downloader)
 [![PyPI](https://img.shields.io/pypi/v/Instantmusic.svg)](https://pypi.python.org/pypi/instantmusic/1.3)
-[![PyPI](https://img.shields.io/pypi/dw/Instantmusic.svg)](https://pypi.python.org/pypi/instantmusic/1.3)
 
-Without knowing its name!!!!
+Without knowing its name!!
 
 > This is so cool!
 
@@ -11,13 +12,13 @@ Without knowing its name!!!!
 For Python 2.7
 
 ```bash
-$ sudo pip install instantmusic
+$  pip install instantmusic
 ```
 
 For Python 3.4
 
 ```bash
-$ sudo pip3 install instantmusic
+$ pip3 install instantmusic
 ```
 
 ### Note:

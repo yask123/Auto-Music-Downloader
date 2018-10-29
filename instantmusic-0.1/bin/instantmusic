@@ -10,12 +10,12 @@ from bs4 import BeautifulSoup
 import requests
 # Version compatiblity
 import sys
+
 if (sys.version_info > (3, 0)):
-    from urllib.request import urlopen
     from urllib.parse import quote_plus as qp
     raw_input = input
+    unicode = str
 else:
-    from urllib2 import urlopen
     from urllib import quote_plus as qp
 
 
@@ -29,6 +29,19 @@ def extract_videos(html):
     found = soup.find_all('a', 'yt-uix-tile-link', href=pattern)
     return [(x.text.encode('utf-8'), x.get('href')) for x in found]
 
+def makeRequest(url, hdr):
+    http_proxy  = os.environ.get("HTTP_PROXY")
+    https_proxy = os.environ.get("HTTPS_PROXY")
+    ftp_proxy   = os.environ.get("FTP_PROXY")
+
+    proxyDict = { 
+        "http"  : http_proxy,
+        "https" : https_proxy,
+        "ftp"   : ftp_proxy
+        }
+
+    req = requests.get(url, headers=hdr, proxies=proxyDict)
+    return req
 
 def grab_albumart(search=''):
     search = qp(search)
@@ -39,7 +52,7 @@ def grab_albumart(search=''):
            'Accept-Encoding': 'none',
            'Accept-Language': 'en-US,en;q=0.8',
            'Connection': 'keep-alive'}
-    req = requests.get(site, headers=hdr)
+    req = makeRequest(site, hdr)
 
     content = str(req.content)
     end =  content.find('jpg')
@@ -52,24 +65,32 @@ def list_movies(movies):
     for idx, (title, _) in enumerate(movies):
         yield '[{}] {}'.format(idx, title.decode('utf-8').encode(sys.stdout.encoding))
 
+def get_lyrics_url(response):
+    """
+    Getting the url for lyrics.
+    """
+    metrolyrics = 'https://www.metrolyrics.com'
+    link_start = response.find(metrolyrics)
+    if link_start is -1:
+        print ("Not able to find https, trying http")
+        metrolyrics = 'http://www.metrolyrics.com'
+        link_start = response.find(metrolyrics)
+    
+    if link_start is -1:
+        print ("Metro lyrics not found")
+        return ""
+    link_end = response.find('html',link_start + 1)
+    link = response[link_start:link_end + 4]
+    return link
 
 def search_videos(query):
     """
     Searches for videos given a query
     """
-    response = urlopen('https://www.youtube.com/results?search_query=' + query)
-    return extract_videos(response.read())
+    response = makeRequest('https://www.youtube.com/results?search_query=' + query, {})
+    return extract_videos(response.content)
 
-
-def search_playlists(query):
-    """
-    Searches for playlists given a query
-    """
-    response = urlopen('https://www.youtube.com/results?filters=playlist&lclk=playlist&search_query=' + query)
-    return extract_videos(response.read())
-
-
-def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False, output_path=''):
+def query_and_download(search, has_prompts=True, is_quiet=False):
     """
     Queries the internet for given lyrics and downloads them into the current working directory.
     If has_prompts is False, will download first available song.
@@ -77,53 +98,43 @@ def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False,
                          off in quiet mode. This is mainly so that instantmusic can be run as a background process.
     Returns the title of the video downloaded from.
     """
-    if video_id is False:
-        if not is_quiet:
-            print('Searching...')
+    if not is_quiet:
+        print('Searching...')
 
-        available = search_videos(search)
+    available = search_videos(search)
 
-        if not is_quiet:
-            if not available:
-                print('No results found matching your query.')
-                sys.exit(2) # Indicate failure using the exit code
-            else:
-                if has_prompts:
-                    print('Found:', '\n'.join(list_movies(available)))
-
-        # We only ask the user which one they want if prompts are on, of course
-        if has_prompts and not is_quiet:
-            choice = ''
-            while choice.strip() == '':
-                choice = raw_input('Pick one: ')
-            title, video_link = available[int(choice)]
-
-            valid = ['Y', 'y', '']
-            prompt = raw_input('Download "%s"? (Y/n) ' % title)
-            if prompt not in valid:
-                sys.exit()
-        # Otherwise, just download the first in available list
+    if not is_quiet:
+        if not available:
+            print('No results found matching your query.')
+            sys.exit(2) # Indicate failure using the exit code
         else:
-            title, video_link = available[0]
+            if has_prompts:
+                print('Found:', '\n'.join(list_movies(available)))
 
-        command_tokens = [
-            'youtube-dl',
-            '--extract-audio',
-            '--audio-format mp3',
-            '--audio-quality 0',
-            '--output ' + output_path + '\'%(title)s.%(ext)s\'',
-            'http://www.youtube.com/%s' % (video_link)]
+    # We only ask the user which one they want if prompts are on, of course
+    if has_prompts and not is_quiet:
+        choice = raw_input('Pick one: ')
+        while not(choice.isdigit()) or not(0 <= int(choice) < len(available)):
+            print("Oups, that was wrong. Try again!")
+            choice = raw_input('Pick one: ')
+        title, video_link = available[int(choice)]
 
+        valid = ['Y', 'y', '']
+        prompt = raw_input('Download "%s"? (y/n) ' % title)
+        if prompt.lower() not in valid:
+            sys.exit()
+    # Otherwise, just download the first in available list
     else:
-        title = search.encode('utf-8')
-        search = qp(' '.join(search.encode('utf-8')))
-        command_tokens = [
-            'youtube-dl',
-            '--extract-audio',
-            '--audio-format mp3',
-            '--audio-quality 0',
-            '--output ' + output_path + '\'%(title)s.%(ext)s\'',
-            'http://www.youtube.com/watch?v=%s' % (video_id)]
+        title, video_link = available[0]
+
+
+    command_tokens = [
+        'youtube-dl',
+        '--extract-audio',
+        '--audio-format mp3',
+        '--audio-quality 0',
+        '--output \'%(title)s.%(ext)s\'',
+        'https://www.youtube.com' + video_link]
 
     if is_quiet:
         command_tokens.insert(1, '-q')
@@ -139,9 +150,13 @@ def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False,
     #Fixing id3 tags
     try:
         print ('Fixing id3 tags')
-        list_name = title.split('-')
-        artist=list_name[0]
-        track_name = list_name[1]
+        list_name = title
+        artist = ''
+        track_name = title
+        if '-' in title:
+            list_name = title.split('-')
+            artist=list_name[0]
+            track_name = list_name[1]
         album_name=''
         try:
             try:
@@ -149,15 +164,12 @@ def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False,
             except:
                 audiofile = eyed3.load((title+'.m4a')) 
 
-            url = 'http://www.google.com/search?q='+qp(title)
-            req = requests.get(url)
+            url = 'https://www.google.com/search?q='+qp(title)
+            req = makeRequest(url, {})
             response = req.content
             result=response
-            link_start=result.find('http://www.metrolyrics.com')
-            link_end=result.find('html',link_start+1)
-            link = result[link_start:link_end+4]
-            lyrics_html = link
-            a = requests.get(lyrics_html)
+            lyrics_html = get_lyrics_url(result) 
+            a = makeRequest(lyrics_html, {})
             print (lyrics_html)
             html_doc=  a.content
             soup = BeautifulSoup(html_doc, 'html.parser')
@@ -166,54 +178,45 @@ def query_and_download(search, has_prompts=True, is_quiet=False, video_id=False,
             except:
                 print ('Cant get album name')
             try:
+                lyrics = ('')
                 raw_lyrics= (soup.findAll('p', attrs={'class' : 'verse'}))
-                paras=[]
-                test1=unicode.join(u'\n',map(unicode,raw_lyrics))
-
-                test1= (test1.replace('<p class="verse">','\n'))
-                test1= (test1.replace('<br/>',' '))
-                test1 = test1.replace('</p>',' ')
-                print (test1)
-                audiofile.tag.lyrics.set(u''+test1 )
+                for each_line in raw_lyrics:
+                    lyrics = lyrics + str(each_line.get_text()) + '\n'
+                print (lyrics)
+                audiofile.tag.lyrics.set(u''+lyrics)
             except:
-                print ('cant get lyrics')           
-
-
-        except Exception as e: 
+                print ('cant get lyrics')
+        except Exception as e:
             print(e)
             print ('error getting album and lyrics')
 
-
-
         print (artist,track_name,album_name)
-        
-        def fix_string(str):
-            location = str.find('[')
+
+        def fix_string(s):
+            location = s.find('[')
             if location != -1:
-                return str[:location].strip()
+                return s[:location].strip()
             else:
-                return str.strip()
+                return s.strip()
 
         artist=fix_string(artist)
         track_name=fix_string(track_name)
         album_name=fix_string(album_name)
 
-        audiofile.tag.artist=unicode(artist)
-        audiofile.tag.title=unicode(track_name)
-        audiofile.tag.album =unicode(album_name)
+        audiofile.tag.artist = unicode(artist)
+        audiofile.tag.title = unicode(track_name)
+        audiofile.tag.album = unicode(album_name)
 
         search =  title[:-4]
         print ('Downloading album art..')
         image_link= grab_albumart(search)
-        str = title
-        str = unicode(str, errors='replace')
-        title = str.encode('utf8')
+        title = unicode(title, errors='replace').encode('utf8')
         print ('Fixing '+title)
         eyed3.log.setLevel("ERROR")
         if audiofile.tag is None:
             audiofile.tag = eyed3.id3.Tag()
             audiofile.tag.file_info = eyed3.id3.FileInfo("foo.id3")
-        response = requests.get(image_link).content
+        response = makeRequest(image_link, {}).content
         imagedata = response
 
         audiofile.tag.images.set(0,imagedata,"image/jpeg",u"Album Art")
@@ -245,19 +248,19 @@ def main():
     if not sys.argv[1:]:
         # We do not want to accept empty inputs :)
         while search == '':
-            search = raw_input('Enter songname/ lyrics/ artist.. or whatever\n> ')
+            search = raw_input('Enter songname / lyrics / artist.. or whatever\n> ')
         search = qp(search)
         downloaded = query_and_download(search)
 
     # Command-line arguments detected!
     else:
         # No flags at all are specified
-        if not search_uses_flags(argument_string, '-s', '-l', '-f', '-p', '-q', '-pl', '-o'):
+        if not search_uses_flags(argument_string, '-s', '-i', '-f', '-p', '-q'):
             search = qp(' '.join(sys.argv[1:]))
             downloaded = query_and_download(search)
 
         # No input flags are specified
-        elif not search_uses_flags(argument_string, '-s', '-l', '-f', '-pl', '-o'):
+        elif not search_uses_flags(argument_string, '-s', '-i', '-f'):
             # Default to -s
             lyrics = argument_string.replace('-p', '').replace('-q', '')
             search = qp(lyrics)
@@ -273,8 +276,6 @@ def main():
             parser.add_argument('-s', action='store', dest='song', nargs='+', help='Download a single song.')
             parser.add_argument('-l', action='store', dest='songlist', nargs='+', help='Download a list of songs, with lyrics separated by a comma (e.g. "i tried so hard and got so far, blackbird singing in the dead of night, hey shawty it\'s your birthday).')
             parser.add_argument('-f', action='store', dest='file', nargs='+', help='Download a list of songs from a file input. Each line in the file is considered one song.')
-            parser.add_argument('-pl', action='store', dest='playlist', nargs='+', help='Download all songs from a playlist.')
-            parser.add_argument('-o', action='store', dest='output_path', nargs='+', help='Specify an output path.')
 
             # Parse and check arguments
             results = parser.parse_args()
@@ -286,13 +287,6 @@ def main():
             if results.songlist:
                 songs = ' '.join(results.songlist)
                 song_list.extend([qp(song) for song in songs.split(',')])
-
-            output_path = ''
-            if results.output_path:
-                output_path = ' '.join(results.output_path)
-                if len(output_path) > 0:
-                    if output_path[len(output_path) - 1] is not '/':
-                        output_path += '/'
 
             if results.file:
                 with open(results.file[0], 'r') as f:
@@ -306,60 +300,9 @@ def main():
             prompt = True if results.has_prompt else False
             quiet = True if results.is_quiet else False
 
-            playlist = False
-            if results.playlist:
-                playlist = True
-                is_quiet = quiet
-                has_prompts = prompt
-
-                available = search_playlists(' '.join(results.playlist).replace(' ', '+'))
-
-                if not is_quiet:
-                    if not available:
-                        print('No results found matching your query.')
-                        sys.exit(2) # Indicate failure using the exit code
-                    else:
-                        if has_prompts:
-                            print('Found:', '\n'.join(list_movies(available)))
-
-                # We only ask the user which one they want if prompts are on, of course
-                if has_prompts and not is_quiet:
-                    choice = ''
-                    while choice.strip() == '':
-                        choice = raw_input('Pick one: ')
-                    title, video_link = available[int(choice)]
-
-                    valid = ['Y', 'y', '']
-                    prompt = raw_input('Download "%s"? (Y/n) ' % title)
-                    if prompt not in valid:
-                        sys.exit()
-
-                # Otherwise, just download the first in available list
-                else:
-                    title, video_link = available[0]
-
-
-                if not is_quiet:
-                    print('Searching videos from playlist %s...' % title)
-
-                from youtube_dl import YoutubeDL
-                ydl = YoutubeDL({'ignoreerrors':'True', 'quiet': is_quiet, 'no_warnings': is_quiet})
-                ydl.add_default_info_extractors()
-                playlist = ydl.extract_info('https://www.youtube.com%s' % video_link, download=False)
-                for video in playlist['entries']:
-                    if video:
-                        if not is_quiet:
-                            print('Video #%d: %s' % (video['playlist_index'], video['title']))
-                            #qp(' '.join(results.song))
-                        song_list.append([video['title'], video['id']])
-
             downloads = []
-            if playlist:
-                for song, video_id in song_list:
-                    downloads.append(query_and_download(song, prompt, quiet, video_id, output_path))
-            else:
-                for song in song_list:
-                    downloads.append(query_and_download(song, prompt, quiet, output_path=output_path))
+            for song in song_list:
+                downloads.append(query_and_download(song, prompt, quiet))
 
             print('Downloaded: %s' % ', '.join(downloads))
 
