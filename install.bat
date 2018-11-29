@@ -5,7 +5,7 @@ rem Script goes to System32 if you start it as admin
 echo This will copy Music-Downloader to %UserProfile%\music_downloader and set it in PATH.
 
 goto check_Permissions
-
+sss
 :back
 mkdir "%UserProfile%\music_downloader"
 copy ".\music_downloader.py" "%UserProfile%\music_downloader\music_downloader.py"
