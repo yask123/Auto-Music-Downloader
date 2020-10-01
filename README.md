@@ -4,7 +4,7 @@ test
 [![Build Status](https://travis-ci.org/yask123/Instant-Music-Downloader.svg?branch=master)](https://travis-ci.org/yask123/Instant-Music-Downloader)
 [![PyPI](https://img.shields.io/pypi/v/Instantmusic.svg)](https://pypi.python.org/pypi/instantmusic/1.3)
 
-Without knowing its name!!
+Without knowing it's name!!
 
 > This is so cool!
 
