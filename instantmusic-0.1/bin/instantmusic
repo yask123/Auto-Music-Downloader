@@ -34,7 +34,7 @@ def makeRequest(url, hdr):
     https_proxy = os.environ.get("HTTPS_PROXY")
     ftp_proxy   = os.environ.get("FTP_PROXY")
 
-    proxyDict = { 
+    proxyDict = {
         "http"  : http_proxy,
         "https" : https_proxy,
         "ftp"   : ftp_proxy
@@ -75,7 +75,7 @@ def get_lyrics_url(response):
         print ("Not able to find https, trying http")
         metrolyrics = 'http://www.metrolyrics.com'
         link_start = response.find(metrolyrics)
-    
+
     if link_start is -1:
         print ("Metro lyrics not found")
         return ""
@@ -127,13 +127,20 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     else:
         title, video_link = available[0]
 
+    custom_file_path = ""
+    if os.name != 'nt':
+        if os.getenv('INSTANT_MUSIC_FOLDER') != None and len(os.getenv('INSTANT_MUSIC_FOLDER')):
+            custom_file_path = os.getenv('INSTANT_MUSIC_FOLDER')
+            if not custom_file_path.endswith('/'):
+                custom_file_path += '/'
 
+    #output_string = custom_file_path + \%(title)s.%(ext)s\'
     command_tokens = [
         'youtube-dl',
         '--extract-audio',
         '--audio-format mp3',
         '--audio-quality 0',
-        '--output \'%(title)s.%(ext)s\'',
+        '--output \'' + custom_file_path + '%(title)s.%(ext)s\'',
         'https://www.youtube.com' + video_link]
 
     if is_quiet:
@@ -141,12 +148,10 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
 
     command = ' '.join(command_tokens)
 
-
     # Youtube-dl is a proof that god exists.
     if not is_quiet:
         print('Downloading')
     os.system(command)
-    
     #Fixing id3 tags
     try:
         print ('Fixing id3 tags')
@@ -162,13 +167,13 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
             try:
                 audiofile = eyed3.load((title+'.mp3'))
             except:
-                audiofile = eyed3.load((title+'.m4a')) 
+                audiofile = eyed3.load((title+'.m4a'))
 
             url = 'https://www.google.com/search?q='+qp(title)
             req = makeRequest(url, {})
             response = req.content
             result=response
-            lyrics_html = get_lyrics_url(result) 
+            lyrics_html = get_lyrics_url(result)
             a = makeRequest(lyrics_html, {})
             print (lyrics_html)
             html_doc=  a.content
@@ -222,7 +227,7 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
         audiofile.tag.images.set(0,imagedata,"image/jpeg",u"Album Art")
         audiofile.tag.save()
         print ('Fixed')
-    except Exception as e: 
+    except Exception as e:
         print(e)
         print ('couldnt get album art')
 

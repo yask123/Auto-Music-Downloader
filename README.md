@@ -31,25 +31,38 @@ You would also need `libav` to download in `.mp3` format.
 ```bash
  $ brew install libav
  ```
- 
-#### On Ubuntu 
+
+#### On Ubuntu
 
 ```bash
- $ sudo apt-get install libav-tools 
+ $ sudo apt-get install libav-tools
 ```
 #### On Windows
->[See this](https://github.com/yask123/Instant-Music-Downloader/issues/19) 
+>[See this](https://github.com/yask123/Instant-Music-Downloader/issues/19)
 
+## Configuration :
+
+If you want to download your files to a custom directory, you can :
+
+### On Mac Os X & Linux
+#### Bash
+```bash
+export INSTANT_MUSIC_FOLDER=YOUR_FOLDER
+```
+#### Fish
+```Fish
+set -gx INSTANT_MUSIC_FOLDER YOUR_FOLDER
+```
 ## Usage
 
 ```bash
-$ instantmusic 
+$ instantmusic
 ```
 
 ```zsh
 >> Enter songname/ lyrics/ artist.. or whatever
 
-i tried so hard and got so far 
+i tried so hard and got so far
 
 >>Downloaded Linkin Park - In The End
 ```
@@ -104,7 +117,7 @@ It will grab following meta data:
 2. Artist (From YT)
 3. Album name (From metrolyrics.com)
 4. Album art (From google images)
-5. Lyrics  (From metrolyrics.com) 
+5. Lyrics  (From metrolyrics.com)
 
 <img src="http://i.imgur.com/fNXww62.png" height="50%" width="50%">
 
@@ -117,7 +130,7 @@ $ sudo pip install fixalbumart
 ❯fixalbumart
 
 >> Fixing taylor swift - love story
->> In the end - Linkin park 
+>> In the end - Linkin park
 ......
 
 >> Fixed all songs
@@ -128,7 +141,7 @@ $ sudo pip install fixalbumart
 
 ### Video
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=H2GQc81hpBE
-" target="_blank"><img src="http://img.youtube.com/vi/H2GQc81hpBE/0.jpg" 
+" target="_blank"><img src="http://img.youtube.com/vi/H2GQc81hpBE/0.jpg"
 alt="Demo" width="240" height="180" border="10" /></a>
 
 
