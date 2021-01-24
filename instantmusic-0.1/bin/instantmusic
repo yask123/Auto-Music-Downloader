@@ -91,7 +91,7 @@ def search_videos(query):
     response = makeRequest('https://www.youtube.com/results?search_query=' + query, {})
     return extract_videos(response.html.html)
 
-def query_and_download(search, has_prompts=True, is_quiet=False):
+def query_and_download(search, output, has_prompts=True, is_quiet=False):
     """
     Queries the internet for given lyrics and downloads them into the current working directory.
     If has_prompts is False, will download first available song.
@@ -128,11 +128,10 @@ def query_and_download(search, has_prompts=True, is_quiet=False):
     else:
         title, video_link = available[0]
 
-
     command_tokens = [
         'youtube-dl',
         '--extract-audio',
-        '--audio-format mp3',
+        '--audio-format {} '.format(output),
         '--audio-quality 0',
         '--output \'%(title)s.%(ext)s\'',
         'https://www.youtube.com' + video_link]
@@ -238,20 +237,24 @@ def search_uses_flags(argstring, *flags):
             return True
     return False
 
+def enter_search():
+    search=''
+    while search == '':
+        search = raw_input('Enter songname / lyrics / artist.. or whatever\n> ')
+    return qp(search)
+
 def main():
     """
     Run the program session
     """
     argument_string = ' '.join(sys.argv[1:])
     search = ''
-
+    form= 'vorbis'
     # No command-line arguments
     if not sys.argv[1:]:
         # We do not want to accept empty inputs :)
-        while search == '':
-            search = raw_input('Enter songname / lyrics / artist.. or whatever\n> ')
-        search = qp(search)
-        downloaded = query_and_download(search)
+        search=enter_search()
+        downloaded = query_and_download(search, form)
 
     # Command-line arguments detected!
     else:
@@ -277,10 +280,10 @@ def main():
             parser.add_argument('-s', action='store', dest='song', nargs='+', help='Download a single song.')
             parser.add_argument('-l', action='store', dest='songlist', nargs='+', help='Download a list of songs, with lyrics separated by a comma (e.g. "i tried so hard and got so far, blackbird singing in the dead of night, hey shawty it\'s your birthday).')
             parser.add_argument('-f', action='store', dest='file', nargs='+', help='Download a list of songs from a file input. Each line in the file is considered one song.')
+            parser.add_argument('-o', action='store', dest='format',nargs=1, help='output codec',default='vorbis',choices=['mp3','vorbis'])
 
             # Parse and check arguments
             results = parser.parse_args()
-
             song_list = []
             if results.song:
                 song_list.append(qp(' '.join(results.song)))
@@ -302,9 +305,11 @@ def main():
             quiet = True if results.is_quiet else False
 
             downloads = []
-            for song in song_list:
-                downloads.append(query_and_download(song, prompt, quiet))
-
+            if song_list:
+                for song in song_list:
+                    downloads.append(query_and_download(song,results.format, prompt, quiet))
+            else:
+                downloaded = query_and_download(enter_search(), results.format[0], prompt, quiet)
             print('Downloaded: %s' % ', '.join(downloads))
 
 if __name__ == '__main__':
