@@ -7,7 +7,7 @@ import re
 import readline
 import eyed3
 from bs4 import BeautifulSoup
-import requests
+from requests_html import HTMLSession
 # Version compatiblity
 import sys
 
@@ -26,8 +26,8 @@ def extract_videos(html):
     """
     soup = BeautifulSoup(html, 'html.parser')
     pattern = re.compile(r'/watch\?v=')
-    found = soup.find_all('a', 'yt-uix-tile-link', href=pattern)
-    return [(x.text.encode('utf-8'), x.get('href')) for x in found]
+    found = soup.find_all('a', id='video-title', href=pattern)
+    return [(x.get('title').encode('utf-8'), x.get('href')) for x in found]
 
 def makeRequest(url, hdr):
     http_proxy  = os.environ.get("HTTP_PROXY")
@@ -39,9 +39,10 @@ def makeRequest(url, hdr):
         "https" : https_proxy,
         "ftp"   : ftp_proxy
         }
-
-    req = requests.get(url, headers=hdr, proxies=proxyDict)
-    return req
+    session = HTMLSession()
+    resp = session.get(url, headers=hdr, proxies=proxyDict)
+    resp.html.render()
+    return resp
 
 def grab_albumart(search=''):
     search = qp(search)
@@ -88,7 +89,7 @@ def search_videos(query):
     Searches for videos given a query
     """
     response = makeRequest('https://www.youtube.com/results?search_query=' + query, {})
-    return extract_videos(response.content)
+    return extract_videos(response.html.html)
 
 def query_and_download(search, has_prompts=True, is_quiet=False):
     """
