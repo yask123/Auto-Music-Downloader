@@ -75,6 +75,7 @@ yeh hosla kaise jhuke
 ❯ instantmusic -h                                                   
 usage: instantmusic [-h] [-p] [-q] [-s SONG [SONG ...]]
                     [-l SONGLIST [SONGLIST ...]] [-f FILE [FILE ...]]
+                    [-pl PLAYLIST [PLAYLIST ...]]
 
 Instantly download any song!
 
@@ -90,6 +91,8 @@ optional arguments:
                         birthday).
   -f FILE [FILE ...]    Download a list of songs from a file input. Each line
                         in the file is considered one song.
+  -pl PLAYLIST [PLAYLIST ...]
+                        Download all songs from a playlist.
 ```
 
 ### MP3 Tags
