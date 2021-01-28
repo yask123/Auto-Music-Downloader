@@ -64,7 +64,7 @@ def grab_albumart(search=''):
 
 def list_movies(movies):
     for idx, (title, _) in enumerate(movies):
-        yield '[{}] {}'.format(idx, title.decode('utf-8').encode(sys.stdout.encoding))
+        yield '[{}] {}'.format(idx, title.decode('utf-8').encode(sys.stdout.encoding,'replace'))
 
 def get_lyrics_url(response):
     """
